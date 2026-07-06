@@ -99,8 +99,14 @@
   
   .bar-container { margin-bottom: 18px; }
   .bar-header { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
-  .bar-fill{height:100%;background:linear-gradient(90deg,#8B0000,#000000);border-radius:4px;transition:width .8s ease;}  .bar-fill{ height:100%; background:var(--primary); border-radius:4px; width:0; transition:width .6s; }
-  .config-row { display: flex; gap: 16px; margin-bottom: 16px; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; flex-wrap: wrap; }
+  .bar-fill{
+height:100%;
+width:0;
+background:linear-gradient(90deg,#8B0000,#000000);
+border-radius:4px;
+transition:width .8s ease;
+}
+ .config-row { display: flex; gap: 16px; margin-bottom: 16px; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; flex-wrap: wrap; }
   footer.foot { text-align: center; margin-top: 40px; font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.03em; }
 </style>
 </head>
@@ -280,7 +286,8 @@ html += `
 </div>
 
 </div>
-`;state.config.positions.forEach(position => {
+`;
+state.config.positions.forEach(position => {
 
 html += `<div class="position-group-title">${position.title}</div>`;
 
@@ -341,20 +348,25 @@ html += `</div>`;
   });
   html += `<button class="btn" id="saveVaultBtn" style="margin-top:16px;">Save Asset Parameters</button></div>`;
   html += `<div class="card"><button class="btn" id="resetBtn" style="background:#dc2626;max-width:200px">Wipe Database</button></div>`;
-  return html;
-  <div style="display:flex;gap:12px;margin:25px 0;flex-wrap:wrap;">
-    <button class="btn" onclick="window.open('/api/export/pdf')">
-        📄 Export PDF
-    </button>
+  html += `
+<div style="display:flex;gap:12px;margin:25px 0;flex-wrap:wrap;">
 
-    <button class="btn" onclick="window.open('/api/export/excel')">
-        📊 Export Excel
-    </button>
+<button class="btn" onclick="window.open('/api/export/pdf')">
+📄 Export PDF
+</button>
 
-    <button class="btn" onclick="window.print()">
-        🖨️ Print Results
-    </button>
+<button class="btn" onclick="window.open('/api/export/excel')">
+📊 Export Excel
+</button>
+
+<button class="btn" onclick="window.print()">
+🖨️ Print Results
+</button>
+
 </div>
+`;
+
+return html;
 }
 
 function toBase64(file) {
