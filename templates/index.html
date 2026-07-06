@@ -13,9 +13,9 @@
     --border: #E2E8F0;
     --text: #1A1A1A;
     --text-muted: #64748B;
-    --primary: #931111; 
-    --primary-glow: rgba(147, 17, 17, 0.04);
-    --primary-hover: #750D0D;
+    --primary:#7A0015;
+    --primary-hover:#4D000D;
+    --primary-glow:rgba(122,0,21,.08);
     --success: #15803D;
     --champions-color: #1E40AF;
     --challengers-color: #B45309;
@@ -99,8 +99,7 @@
   
   .bar-container { margin-bottom: 18px; }
   .bar-header { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
-  .bar-track { height: 8px; background: #F1F5F9; border-radius: 4px; overflow: hidden; }
-  .bar-fill { height: 100%; background: var(--primary); border-radius: 4px; width: 0; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+  .bar-fill{height:100%;background:linear-gradient(90deg,#8B0000,#000000);border-radius:4px;transition:width .8s ease;}  .bar-fill{ height:100%; background:var(--primary); border-radius:4px; width:0; transition:width .6s; }
   .config-row { display: flex; gap: 16px; margin-bottom: 16px; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; flex-wrap: wrap; }
   footer.foot { text-align: center; margin-top: 40px; font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.03em; }
 </style>
@@ -253,10 +252,84 @@ function renderAdminLogin() {
   return `<div class="card" style="max-width:400px;margin:0 auto"><label>Dashboard Key</label><input type="password" id="adminPass" placeholder="••••••••" style="margin-bottom:16px"><button class="btn" id="loginBtn">Unlock</button></div>`;
 }
 
-function renderAdminDashboard() {
-  let html = `<div class="card"><h2 class="house-group-title" style="margin-bottom:24px">Live Metrics Summary</h2>`;
-  // ... (keep your existing metrics logic here) ...
-  html += `</div>`;
+function renderAdminDashboard(){
+
+  let html = `<div class="card">
+<h2 class="house-group-title">Live Metrics Summary</h2>`;
+
+const totalVotes = Object.keys(state.voters).length;
+const totalVoters = state.roster.length;
+const turnout = totalVoters ? ((totalVotes / totalVoters) * 100).toFixed(1) : 0;
+
+html += `
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px;margin:25px 0;">
+
+<div class="card">
+<div style="font-size:14px;color:#666;">Total Voters</div>
+<h1>${totalVoters}</h1>
+</div>
+
+<div class="card">
+<div style="font-size:14px;color:#666;">Votes Cast</div>
+<h1>${totalVotes}</h1>
+</div>
+
+<div class="card">
+<div style="font-size:14px;color:#666;">Turnout</div>
+<h1>${turnout}%</h1>
+</div>
+
+</div>
+`;state.config.positions.forEach(position => {
+
+html += `<div class="position-group-title">${position.title}</div>`;
+
+const counts = {};
+
+position.candidates.forEach(c => counts[c.id] = 0);
+
+Object.values(state.votes).forEach(vote => {
+
+    if (Array.isArray(vote)) {
+
+        vote.forEach(id => {
+
+            if (counts[id] !== undefined)
+                counts[id]++;
+
+        });
+
+    }
+
+});
+
+const maxVotes = Math.max(...Object.values(counts), 1);
+
+position.candidates.forEach(candidate => {
+
+    const votes = counts[candidate.id];
+    const percentage = (votes / maxVotes) * 100;
+
+    html += `
+    <div class="bar-container">
+
+        <div class="bar-header">
+            <span>${candidate.name}</span>
+            <span>${votes} votes</span>
+        </div>
+
+        <div class="bar-track">
+            <div class="bar-fill" style="width:${percentage}%"></div>
+        </div>
+
+    </div>
+    `;
+
+});
+
+});
+
+html += `</div>`;
 
   html += `<div class="card"><h2 class="house-group-title">Global Branding Configuration</h2>
     <div style="margin-bottom:16px">
@@ -381,6 +454,16 @@ function attachListeners() {
 
 function esc(s){ return s ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : ''; }
 initSync();
+
+setInterval(()=>{
+
+if(state.view==="admin"){
+
+initSync();
+
+}
+
+},3000);
 </script>
 </body>
 </html>
