@@ -3,67 +3,49 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VIP's Student Council Elections</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<title>VIP's Election Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 <style>
-  :root { --bg: #FAFAFA; --card-bg: #FFFFFF; --border: #E2E8F0; --text: #1A1A1A; --primary: #931111; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; padding: 60px 20px; }
-  .container { max-width: 840px; margin: 0 auto; }
-  header { text-align: center; margin-bottom: 40px; }
-  .school-logo-frame { width: 120px; height: 120px; margin: 0 auto 20px; border: 1px solid var(--border); border-radius: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-  .school-logo-frame img { max-width: 100%; height: auto; }
-  .nav-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #F1F5F9; padding: 5px; border-radius: 12px; margin-bottom: 30px; }
-  .nav-btn { padding: 10px; border: none; background: none; font-weight: 700; cursor: pointer; border-radius: 8px; }
-  .nav-btn.active { background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-  .card { background: #fff; padding: 25px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 20px; }
-  .candidate-item { display: flex; align-items: center; gap: 15px; padding: 15px; border: 1px solid var(--border); border-radius: 10px; margin-top: 10px; cursor: pointer; position: relative; }
-  .candidate-item.selected { border-color: var(--primary); background: #fdf2f2; }
-  .avatar { width: 50px; height: 50px; border-radius: 10px; object-fit: contain; }
-  .mini-emblem { position: absolute; top: -5px; right: -5px; width: 30px; height: 30px; border-radius: 5px; border: 2px solid #fff; background: #fff; }
-  .btn { width: 100%; padding: 15px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
+  :root { --bg: #FAFAFA; --card-bg: #FFFFFF; --border: #E2E8F0; --primary: #931111; }
+  body { background: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; padding: 40px 20px; }
+  .container { max-width: 800px; margin: 0 auto; }
+  h1 { font-family: 'Space Grotesk'; font-size: 32px; background: linear-gradient(90deg, #931111, #000000); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; margin-bottom: 30px; }
+  .grid-btn { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .btn { padding: 12px; background: #fff; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 600; }
+  .btn.active { background: var(--primary); color: #fff; }
+  .card { background: #fff; padding: 20px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 20px; }
+  .list-item { padding: 10px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
 </style>
 </head>
 <body>
 <div class="container" id="app"></div>
 
 <script>
-let state = { view: "vote", roster: [], votes: {}, voters: {}, config: null, selectedGrade: "", selectedVoterId: "", selections: {}, isAdmin: false };
-
-window.DEFAULT_STABLE_CONFIG = {
-  schoolName: "VIP's INTERNATIONAL SCHOOL",
-  electionTitle: "Student Council Elections",
-  schoolLogo: "https://i.imgur.com/G3bY9hP.png",
-  positions: [{ id: "hb", title: "Head Boy", category: "general", candidates: [{id:"hb1", name:"Khaja", photo:"", logo:""}] }]
-};
+let state = { view: "vote", roster: [], selectedGrade: null, config: null };
 
 async function initSync() {
   const res = await fetch('/api/get-initial-state');
   const data = await res.json();
-  state.roster = data.roster; state.votes = data.votes; state.voters = data.voters;
-  state.config = data.customConfig || window.DEFAULT_STABLE_CONFIG;
+  state.roster = data.roster;
+  state.config = data.customConfig || { schoolName: "VIP's INTERNATIONAL SCHOOL" };
   render();
 }
 
 function render() {
-  let html = `<header><div class="school-logo-frame"><img src="${state.config.schoolLogo}"></div><h1>${state.config.schoolName}</h1></header>
-  <div class="nav-tabs">
-    <button class="nav-btn ${state.view=='vote'?'active':''}" onclick="state.view='vote';render()">Ballot</button>
-    <button class="nav-btn ${state.view=='admin'?'active':''}" onclick="state.view='admin';render()">Admin</button>
+  const grades = Array.from(new Set(state.roster.map(s => s.grade))).sort();
+  let html = `<h1>${state.config.schoolName}</h1>
+  <div class="grid-btn">
+    ${grades.map(g => `<button class="btn ${state.selectedGrade==g?'active':''}" onclick="state.selectedGrade='${g}';render()">${g}</button>`).join('')}
   </div>`;
   
-  if(state.view === 'vote') {
-    html += `<div class="card">
-      <select id="gradeSelect" onchange="state.selectedGrade=this.value;render()">
-        <option value="">Select Grade</option>
-        ${Array.from(new Set(state.roster.map(s=>s.grade))).map(g=>`<option value="${g}">${g}</option>`).join('')}
-      </select>
+  if(state.selectedGrade) {
+    const people = state.roster.filter(p => p.grade === state.selectedGrade);
+    html += `<div class="card"><h3>${state.selectedGrade == "Faculty & Staff" ? "Staff Directory" : "Student Details - Grade " + state.selectedGrade}</h3>
+    ${people.map(p => `<div class="list-item"><span>${p.name}</span><small>${p.section || p.house}</small></div>`).join('')}
     </div>`;
   }
   document.getElementById('app').innerHTML = html;
 }
-
 initSync();
 </script>
 </body>
