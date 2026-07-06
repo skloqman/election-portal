@@ -7,33 +7,22 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #FAFAFA; --card-bg: #FFFFFF; --border: #E2E8F0; --text: #1A1A1A; --text-muted: #64748B;
-    --primary: #931111; --primary-glow: rgba(147, 17, 17, 0.04); --primary-hover: #750D0D; --success: #15803D;
-  }
+  :root { --bg: #FAFAFA; --card-bg: #FFFFFF; --border: #E2E8F0; --text: #1A1A1A; --primary: #931111; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; padding: 60px 20px; }
+  body { background: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; padding: 60px 20px; }
   .container { max-width: 840px; margin: 0 auto; }
-  header { text-align: center; margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
-  .school-logo-frame { width: 120px; height: 120px; margin: 0 auto 20px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 12px; box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.05); }
-  .school-logo-frame img { max-width: 100%; max-height: 100%; object-fit: contain; }
-  .navigation-tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; background: #F1F5F9; border: 1px solid var(--border); padding: 6px; border-radius: 14px; margin-bottom: 40px; }
-  .nav-tab { background: transparent; border: none; color: var(--text-muted); padding: 12px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; cursor: pointer; border-radius: 10px; transition: all 0.2s; }
-  .nav-tab.active { background: var(--card-bg); color: var(--text); box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05); }
-  .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 36px; margin-bottom: 32px; box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.02); }
-  .house-container-card { border: 1px solid var(--border); border-radius: 20px; padding: 32px; margin-bottom: 32px; background: var(--card-bg); }
-  .house-group-title { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: var(--primary); margin-bottom: 24px; }
-  .position-group-title { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; margin: 28px 0 12px; display: flex; align-items: center; gap: 12px; }
-  .position-group-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-  .candidate-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
-  .candidate-item { display: flex; align-items: center; gap: 18px; padding: 20px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; cursor: pointer; position: relative; }
-  .candidate-item.selected { border-color: var(--primary); background: var(--primary-glow); }
-  .avatar { width: 64px; height: 64px; border-radius: 14px; object-fit: contain; border: 1px solid var(--border); background: transparent; }
-  .mini-emblem { position: absolute; top: -10px; right: -10px; width: 42px; height: 42px; border-radius: 10px; border: 2px solid #FFF; background: #FFF; object-fit: contain; box-shadow: 0 4px 12px rgba(0,0,0,0.12); z-index: 10; }
-  .checkbox-circle { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #CBD5E1; }
-  .candidate-item.selected .checkbox-circle { background: var(--primary); border-color: var(--primary); }
-  .btn { width: 100%; padding: 18px; border-radius: 14px; border: none; background: var(--primary); color: #FFF; font-weight: 700; cursor: pointer; }
-  .config-row { display: flex; gap: 16px; margin-bottom: 16px; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+  header { text-align: center; margin-bottom: 40px; }
+  .school-logo-frame { width: 120px; height: 120px; margin: 0 auto 20px; border: 1px solid var(--border); border-radius: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .school-logo-frame img { max-width: 100%; height: auto; }
+  .nav-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #F1F5F9; padding: 5px; border-radius: 12px; margin-bottom: 30px; }
+  .nav-btn { padding: 10px; border: none; background: none; font-weight: 700; cursor: pointer; border-radius: 8px; }
+  .nav-btn.active { background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+  .card { background: #fff; padding: 25px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 20px; }
+  .candidate-item { display: flex; align-items: center; gap: 15px; padding: 15px; border: 1px solid var(--border); border-radius: 10px; margin-top: 10px; cursor: pointer; position: relative; }
+  .candidate-item.selected { border-color: var(--primary); background: #fdf2f2; }
+  .avatar { width: 50px; height: 50px; border-radius: 10px; object-fit: contain; }
+  .mini-emblem { position: absolute; top: -5px; right: -5px; width: 30px; height: 30px; border-radius: 5px; border: 2px solid #fff; background: #fff; }
+  .btn { width: 100%; padding: 15px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -41,6 +30,13 @@
 
 <script>
 let state = { view: "vote", roster: [], votes: {}, voters: {}, config: null, selectedGrade: "", selectedVoterId: "", selections: {}, isAdmin: false };
+
+window.DEFAULT_STABLE_CONFIG = {
+  schoolName: "VIP's INTERNATIONAL SCHOOL",
+  electionTitle: "Student Council Elections",
+  schoolLogo: "https://i.imgur.com/G3bY9hP.png",
+  positions: [{ id: "hb", title: "Head Boy", category: "general", candidates: [{id:"hb1", name:"Khaja", photo:"", logo:""}] }]
+};
 
 async function initSync() {
   const res = await fetch('/api/get-initial-state');
@@ -50,8 +46,25 @@ async function initSync() {
   render();
 }
 
-// ... [Keep the render() and attachListeners() logic from the previous turn] ...
-// Make sure to add the 'data-photo-url-id' listener logic in attachListeners as provided in the last step.
+function render() {
+  let html = `<header><div class="school-logo-frame"><img src="${state.config.schoolLogo}"></div><h1>${state.config.schoolName}</h1></header>
+  <div class="nav-tabs">
+    <button class="nav-btn ${state.view=='vote'?'active':''}" onclick="state.view='vote';render()">Ballot</button>
+    <button class="nav-btn ${state.view=='admin'?'active':''}" onclick="state.view='admin';render()">Admin</button>
+  </div>`;
+  
+  if(state.view === 'vote') {
+    html += `<div class="card">
+      <select id="gradeSelect" onchange="state.selectedGrade=this.value;render()">
+        <option value="">Select Grade</option>
+        ${Array.from(new Set(state.roster.map(s=>s.grade))).map(g=>`<option value="${g}">${g}</option>`).join('')}
+      </select>
+    </div>`;
+  }
+  document.getElementById('app').innerHTML = html;
+}
+
+initSync();
 </script>
 </body>
 </html>
