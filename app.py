@@ -1,7 +1,11 @@
 import os
 import json
 import sqlite3
-from flask import Flask, render_template, request, jsonify
+
+from flask import Flask, render_template, request, jsonify, send_file
+
+from openpyxl import Workbook
+from reportlab.pdfgen import canvas
 
 app = Flask(__name__, template_folder='templates')
 DB_FILE = "database.db"
@@ -234,6 +238,86 @@ def reset_database():
     conn.close()
     init_db()
     return jsonify({"success": True})
+
+@app.route("/api/export/excel")
+def export_excel():
+
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT candidate_id,
+               COUNT(candidate_id)
+        FROM votes
+        GROUP BY candidate_id
+        ORDER BY COUNT(candidate_id) DESC
+    """)
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    wb = Workbook()
+
+    ws = wb.active
+    ws.title = "Election Results"
+
+    ws.append(["Candidate ID","Votes"])
+
+    for row in rows:
+        ws.append(row)
+
+    filename = "Election_Results.xlsx"
+
+    wb.save(filename)
+
+    return send_file(filename,as_attachment=True)
+
+@app.route("/api/export/pdf")
+def export_pdf():
+
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT candidate_id,
+               COUNT(candidate_id)
+        FROM votes
+        GROUP BY candidate_id
+        ORDER BY COUNT(candidate_id) DESC
+    """)
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    filename = "Election_Results.pdf"
+
+    pdf = canvas.Canvas(filename)
+
+    pdf.setFont("Helvetica-Bold",18)
+
+    pdf.drawString(180,800,"Election Results")
+
+    y = 760
+
+    pdf.setFont("Helvetica",12)
+
+    for candidate,votes in rows:
+
+        pdf.drawString(80,y,candidate)
+
+        pdf.drawString(350,y,str(votes))
+
+        y -= 25
+
+        if y < 60:
+            pdf.showPage()
+            y = 800
+
+    pdf.save()
+
+    return send_file(filename,as_attachment=True)
 
 if __name__ == '__main__':
     init_db()

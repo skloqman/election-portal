@@ -286,21 +286,8 @@ html += `<div class="position-group-title">${position.title}</div>`;
 
 const counts = {};
 
-position.candidates.forEach(c => counts[c.id] = 0);
-
-Object.values(state.votes).forEach(vote => {
-
-    if (Array.isArray(vote)) {
-
-        vote.forEach(id => {
-
-            if (counts[id] !== undefined)
-                counts[id]++;
-
-        });
-
-    }
-
+position.candidates.forEach(candidate => {
+    counts[candidate.id] = state.votes[candidate.id] || 0;
 });
 
 const maxVotes = Math.max(...Object.values(counts), 1);
@@ -355,6 +342,19 @@ html += `</div>`;
   html += `<button class="btn" id="saveVaultBtn" style="margin-top:16px;">Save Asset Parameters</button></div>`;
   html += `<div class="card"><button class="btn" id="resetBtn" style="background:#dc2626;max-width:200px">Wipe Database</button></div>`;
   return html;
+  <div style="display:flex;gap:12px;margin:25px 0;flex-wrap:wrap;">
+    <button class="btn" onclick="window.open('/api/export/pdf')">
+        📄 Export PDF
+    </button>
+
+    <button class="btn" onclick="window.open('/api/export/excel')">
+        📊 Export Excel
+    </button>
+
+    <button class="btn" onclick="window.print()">
+        🖨️ Print Results
+    </button>
+</div>
 }
 
 function toBase64(file) {
