@@ -37,8 +37,7 @@
   h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(26px, 4vw, 36px); font-weight: 700; letter-spacing: -0.03em; color: var(--text); margin-bottom: 6px; }
   .subtitle { color: var(--text-muted); font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase; }
 
-  .navigation-tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; background: #F1F5F9; border: 1px solid var(--border); padding: 6px; border-radius: 14px; margin-bottom: 40px; }
-  .nav-tab { background: transparent; border: none; color: var(--text-muted); padding: 12px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; border-radius: 10px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+  .navigation-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:#F1F5F9;border:1px solid var(--border);padding:6px;border-radius:14px;margin-bottom:40px;}  .nav-tab { background: transparent; border: none; color: var(--text-muted); padding: 12px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; border-radius: 10px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
   .nav-tab.active { background: var(--card-bg); color: var(--text); box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05); }
 
   .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 36px; margin-bottom: 32px; box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.02); }
@@ -115,7 +114,7 @@ transition:width .8s ease;
 <div class="container" id="app"></div>
 
 <script>
-let state = { view: "vote", roster: [], votes: {}, voters: {}, config: null, selectedGrade: "", selectedVoterId: "", selections: {}, isAdmin: false, error: "" };
+let state={view:"vote",adminTab:"dashboard",roster:[],votes:{},voters:{},config:null,selectedGrade:"",selectedVoterId:"",selections:{},isAdmin:false,error:""};
 
 async function initSync() {
   const res = await fetch('/api/get-initial-state');
@@ -259,15 +258,40 @@ function renderAdminLogin() {
 }
 
 function renderAdminDashboard(){
+  let html = `
+<div class="navigation-tabs">
 
-  let html = `<div class="card">
-<h2 class="house-group-title">Live Metrics Summary</h2>`;
+<button class="nav-tab ${state.adminTab=="dashboard"?"active":""}"
+onclick="state.adminTab='dashboard';render();">
+Dashboard
+</button>
 
+<button class="nav-tab ${state.adminTab=="campaign"?"active":""}"
+onclick="state.adminTab='campaign';render();">
+Campaign
+</button>
+
+<button class="nav-tab ${state.adminTab=="settings"?"active":""}"
+onclick="state.adminTab='settings';render();">
+Settings
+</button>
+
+<button class="nav-tab ${state.adminTab=="export"?"active":""}"
+onclick="state.adminTab='export';render();">
+Export
+</button>
+
+</div>`;
+
+html += `
+<div class="card">
+<h2 class="house-group-title">📊 Live Metrics Summary</h2>
+`;
 const totalVotes = Object.values(state.votes).reduce((a,b)=>a+b,0);
 const totalVoters = state.roster.length;
 const turnout = totalVoters ? ((totalVotes / totalVoters) * 100).toFixed(1) : 0;
-
-html += `
+if(state.adminTab==="dashboard"){
+  html += `
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px;margin:25px 0;">
 
 <div class="card">
@@ -323,8 +347,8 @@ position.candidates.forEach(candidate => {
 
 });
 
-html += `</div>`;
-
+html += `</div>`;}
+  if(state.adminTab==="settings"){
   html += `<div class="card"><h2 class="house-group-title">Global Branding Configuration</h2>
     <div style="margin-bottom:16px">
       <label>School Header Logo File</label>
@@ -333,7 +357,8 @@ html += `</div>`;
       <input type="text" id="schoolLogoUrlInput" placeholder="https://..." value="${esc(state.config.schoolLogo)}">
     </div>
   </div>`;
-
+}
+if(state.adminTab==="campaign"){
   html += `<div class="card"><h2 class="house-group-title">Media Vault Manager</h2>`;
   state.config.positions.forEach(pos => {
     html += `<div style="font-size:14px;font-weight:800;color:var(--primary);margin:16px 0 8px;">${esc(pos.title)}</div>`;
@@ -348,24 +373,26 @@ html += `</div>`;
   });
   html += `<button class="btn" id="saveVaultBtn" style="margin-top:16px;">Save Asset Parameters</button></div>`;
   html += `<div class="card"><button class="btn" id="resetBtn" style="background:#dc2626;max-width:200px">Wipe Database</button></div>`;
+}
+  if(state.adminTab==="export"){
   html += `
 <div style="display:flex;gap:12px;margin:25px 0;flex-wrap:wrap;">
 
 <button class="btn" onclick="window.open('/api/export/pdf')">
-📄 Export PDF
+Export PDF
 </button>
 
 <button class="btn" onclick="window.open('/api/export/excel')">
-📊 Export Excel
+Export Excel
 </button>
 
 <button class="btn" onclick="window.print()">
-🖨️ Print Results
+Print Results
 </button>
 
 </div>
 `;
-
+  }
 return html;
 }
 
@@ -467,15 +494,7 @@ function attachListeners() {
 function esc(s){ return s ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : ''; }
 initSync();
 
-setInterval(()=>{
-
-if(state.view==="admin"){
-
-initSync();
-
-}
-
-},3000);
+setInterval(()=>{if(state.view==="admin"&&state.adminTab==="dashboard"){initSync();}},3000);
 </script>
 </body>
 </html>
