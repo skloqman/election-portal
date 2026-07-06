@@ -1,0 +1,240 @@
+import os
+import json
+import sqlite3
+from flask import Flask, render_template, request, jsonify
+
+app = Flask(__name__, template_folder='templates')
+DB_FILE = "database.db"
+
+# SEQUENCED CORRECTIONS: Ms. Seema Jabbar is now sorted directly beneath the Floor Incharge position
+BASE_ROSTER = [
+  {"id":"FAC1","name":"Mr. Mujtaba Khan","grade":"Faculty & Staff","section":"Managing Director","house":"General"},
+  {"id":"FAC2","name":"Ms. Veena","grade":"Faculty & Staff","section":"Academic Director","house":"General"},
+  {"id":"FAC3","name":"Ms. Syeda Mahjabeen","grade":"Faculty & Staff","section":"Academic Coordinator","house":"General"},
+  {"id":"FAC4","name":"Ma. Asma Najeeb","grade":"Faculty & Staff","section":"Academic Incharge(FLK)","house":"General"},
+  {"id":"FAC5","name":"Mr. Wahed","grade":"Faculty & Staff","section":"Deeniyath HOD","house":"General"},
+  {"id":"FAC6","name":"Ms. Doris Shaik","grade":"Faculty & Staff","section":"Admin Incharge","house":"General"},
+  {"id":"FAC7","name":"Ms. Mahjabeen","grade":"Faculty & Staff","section":"Floor In Charge","house":"General"},
+  {"id":"FAC8","name":"Ms. Seema Jabbar","grade":"Faculty & Staff","section":"In Charge","house":"General"},
+  {"id":"FAC26","name":"Mr. Salman","grade":"Faculty & Staff","section":"Admin","house":"General"},
+  {"id":"FAC9","name":"Ms. Shazia","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC10","name":"Ms. Parveen","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC11","name":"Ms. Rubeena","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC12","name":"Ms. Yasmeen","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC13","name":"Ms. Heena","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC14","name":"Ms. Mariyam","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC15","name":"Ms. Asfiya","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC16","name":"Ms. Kahera","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC17","name":"Ms. Zoya","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC18","name":"Ms. Reshma","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC19","name":"Ms. Masarath","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC20","name":"Ms. Amena","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC21","name":"Ms. Maheen","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC22","name":"Mr. Jaleel","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC23","name":"Mr. Fuzail","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC24","name":"Mr. Loqman","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC25","name":"Mr. Mohiuddin","grade":"Faculty & Staff","section":"Teacher","house":"General"},
+  {"id":"FAC32","name":"Imran","grade":"Faculty & Staff","section":"Driver","house":"General"},
+  {"id":"FAC33","name":"Hameed","grade":"Faculty & Staff","section":"Driver","house":"General"},
+  {"id":"FAC27","name":"Khaled","grade":"Faculty & Staff","section":"Watch man","house":"General"},
+  {"id":"FAC28","name":"M. Jyoti","grade":"Faculty & Staff","section":"Supporting Staff","house":"General"},
+  {"id":"FAC29","name":"Savitri","grade":"Faculty & Staff","section":"Supporting Staff","house":"General"},
+  {"id":"FAC30","name":"Noor","grade":"Faculty & Staff","section":"Supporting Staff","house":"General"},
+  {"id":"FAC31","name":"Baleshwari","grade":"Faculty & Staff","section":"Supporting Staff","house":"General"},
+  {"id":"C1","name":"Tameem Raahil","house":"Champions","grade":"4","section":""},
+  {"id":"C2","name":"Abdullah","house":"Champions","grade":"4","section":""},
+  {"id":"C3","name":"Zain Mahmood","house":"Champions","grade":"4","section":""},
+  {"id":"C4","name":"Saddiq Qureshi","house":"Champions","grade":"4","section":""},
+  {"id":"C5","name":"Meher Unnisa","house":"Champions","grade":"4","section":""},
+  {"id":"C6","name":"Ayra Afsheen","house":"Champions","grade":"4","section":""},
+  {"id":"C7","name":"Zainab","house":"Champions","grade":"4","section":""},
+  {"id":"C8","name":"Maira Mujeeb","house":"Champions","grade":"4","section":""},
+  {"id":"C9","name":"Khadijah","house":"Champions","grade":"4","section":""},
+  {"id":"C10","name":"Mariyam","house":"Champions","grade":"4","section":""},
+  {"id":"C11","name":"Ali Bakooban","house":"Champions","grade":"4","section":""},
+  {"id":"C12","name":"Zunairah Amtul","house":"Champions","grade":"4","section":""},
+  {"id":"C13","name":"Uzair Khan","house":"Champions","grade":"4","section":""},
+  {"id":"C14","name":"Malik","house":"Champions","grade":"4","section":""},
+  {"id":"C15","name":"Rayyan","house":"Champions","grade":"4","section":""},
+  {"id":"C16","name":"Awad","house":"Champions","grade":"4","section":""},
+  {"id":"C17","name":"Waheed","house":"Champions","grade":"4","section":""},
+  {"id":"C18","name":"Uzair Imtiyaz","house":"Champions","grade":"4","section":""},
+  {"id":"C19","name":"Affan Meer","house":"Champions","grade":"4","section":""},
+  {"id":"C20","name":"Abubaker","house":"Champions","grade":"4","section":""},
+  {"id":"C21","name":"Ahmed","house":"Champions","grade":"4","section":""},
+  {"id":"C22","name":"Farhan","house":"Champions","grade":"4","section":""},
+  {"id":"C23","name":"Ibrahim","house":"Champions","grade":"4","section":""},
+  {"id":"C24","name":"Murtuza","house":"Champions","grade":"4","section":""},
+  {"id":"CH1","name":"Taha Syed Najeeb","house":"Challengers","grade":"5","section":""},
+  {"id":"CH2","name":"Mohammed Muhammed","house":"Challengers","grade":"5","section":""},
+  {"id":"CH3","name":"Furqan","house":"Challengers","grade":"5","section":""},
+  {"id":"CH4","name":"Syed Uzair","house":"Challengers","grade":"5","section":""},
+  {"id":"CH5","name":"Batul","house":"Challengers","grade":"5","section":""},
+  {"id":"CH6","name":"Umaima","house":"Challengers","grade":"5","section":""},
+  {"id":"CH7","name":"Umra fatima","house":"Challengers","grade":"5","section":""},
+  {"id":"CH8","name":"Zunairah Begum","house":"Challengers","grade":"5","section":""},
+  {"id":"CH9","name":"Ammara Faiz","house":"Challengers","grade":"5","section":""},
+  {"id":"CH10","name":"Rida fatima","house":"Challengers","grade":"5","section":""},
+  {"id":"CH11","name":"Mahveen Fatima","house":"Challengers","grade":"5","section":""},
+  {"id":"CH12","name":"Rumaisa","house":"Challengers","grade":"5","section":""},
+  {"id":"CH13","name":"Sohan","house":"Challengers","grade":"5","section":""},
+  {"id":"CH14","name":"Arhaan","house":"Challengers","grade":"5","section":""},
+  {"id":"CH15","name":"Ayaan","house":"Challengers","grade":"5","section":""},
+  {"id":"CH16","name":"Arhum","house":"Challengers","grade":"5","section":""},
+  {"id":"CH17","name":"Abdul Kabeer","house":"Challengers","grade":"5","section":""},
+  {"id":"CH18","name":"Alina Azin","house":"Challengers","grade":"5","section":""},
+  {"id":"CH19","name":"Madiha Bakooban","house":"Challengers","grade":"5","section":""},
+  {"id":"CH20","name":"Azaan","house":"Challengers","grade":"5","section":""},
+  {"id":"CH21","name":"Anzar","house":"Challengers","grade":"5","section":""},
+  {"id":"CH22","name":"Rehan","house":"Challengers","grade":"5","section":""},
+  {"id":"CH23","name":"Bari","house":"Challengers","grade":"5","section":""},
+  {"id":"CH24","name":"Yahiya Zain","house":"Challengers","grade":"5","section":""},
+  {"id":"CH25","name":"Syed Rehan","house":"Challengers","grade":"5","section":""},
+  {"id":"W1","name":"Munazza","house":"Warriors","grade":"6","section":""},
+  {"id":"W2","name":"Zunaira Hyder","house":"Warriors","grade":"6","section":""},
+  {"id":"W3","name":"Syeda Mahreen","house":"Warriors","grade":"6","section":""},
+  {"id":"W4","name":"Durar Hadi","house":"Warriors","grade":"6","section":""},
+  {"id":"W5","name":"Nida","house":"Warriors","grade":"6","section":""},
+  {"id":"W6","name":"Tazkiya","house":"Warriors","grade":"6","section":""},
+  {"id":"W7","name":"Anas","house":"Warriors","grade":"6","section":""},
+  {"id":"W8","name":"Syed Mohammed","house":"Warriors","grade":"6","section":""},
+  {"id":"W9","name":"Samaira","house":"Warriors","grade":"6","section":""},
+  {"id":"W10","name":"Arzaan","house":"Warriors","grade":"6","section":""},
+  {"id":"W11","name":"Rashed","house":"Warriors","grade":"6","section":""},
+  {"id":"W12","name":"Juveriya Kamal","house":"Warriors","grade":"6","section":""},
+  {"id":"W13","name":"Aiza Sadiq","house":"Warriors","grade":"6","section":""},
+  {"id":"W14","name":"Daniya","house":"Warriors","grade":"6","section":""},
+  {"id":"W15","name":"Zaara","house":"Warriors","grade":"6","section":""},
+  {"id":"W16","name":"Aliza","house":"Warriors","grade":"6","section":""},
+  {"id":"W17","name":"Alina","house":"Warriors","grade":"6","section":""},
+  {"id":"W18","name":"Ummul","house":"Warriors","grade":"6","section":""},
+  {"id":"W19","name":"Mahreen Fatima","house":"Warriors","grade":"6","section":""},
+  {"id":"W20","name":"Anas meer","house":"Warriors","grade":"6","section":""},
+  {"id":"W21","name":"Arhum","house":"Warriors","grade":"6","section":""},
+  {"id":"W22","name":"Abdul Salah","house":"Warriors","grade":"6","section":""},
+  {"id":"W23","name":"Ahsan","house":"Warriors","grade":"6","section":""},
+  {"id":"W24","name":"Shahriyar","house":"Warriors","grade":"6","section":""},
+  {"id":"W25","name":"Ahmed","house":"Warriors","grade":"6","section":""},
+  {"id":"S1","name":"Rabah Ur Rahmana","house":"Superiors","grade":"7","section":""},
+  {"id":"S2","name":"Sanaullah","house":"Superiors","grade":"7","section":""},
+  {"id":"S3","name":"Afeefah","house":"Superiors","grade":"7","section":""},
+  {"id":"S4","name":"Arbiya","house":"Superiors","grade":"7","section":""},
+  {"id":"S5","name":"Ibrahim","house":"Superiors","grade":"7","section":""},
+  {"id":"S6","name":"Habeeb Khan","house":"Superiors","grade":"7","section":""},
+  {"id":"S7","name":"Shaik Azaan","house":"Superiors","grade":"7","section":""},
+  {"id":"S8","name":"Kabir","house":"Superiors","grade":"7","section":""},
+  {"id":"S9","name":"Mustafa","house":"Superiors","grade":"7","section":""},
+  {"id":"S10","name":"Mizba","house":"Superiors","grade":"7","section":""},
+  {"id":"S11","name":"Ayesha syed hassan","house":"Superiors","grade":"7","section":""},
+  {"id":"S12","name":"Bibi Ayesha","house":"Superiors","grade":"7","section":""},
+  {"id":"S13","name":"Hoorain","house":"Superiors","grade":"7","section":""},
+  {"id":"S14","name":"Zehra","house":"Superiors","grade":"7","section":""},
+  {"id":"S15","name":"Khatijah Maira","house":"Superiors","grade":"7","section":""},
+  {"id":"S16","name":"Faiz","house":"Superiors","grade":"7","section":""},
+  {"id":"S17","name":"Abdur Rahman","house":"Superiors","grade":"7","section":""},
+  {"id":"S18","name":"Ibrahim Ifran","house":"Superiors","grade":"7","section":""},
+  {"id":"S19","name":"Arhaan","house":"Superiors","grade":"7","section":""},
+  {"id":"S20","name":"Syeda Sidra","house":"Superiors","grade":"7","section":""},
+  {"id":"S21","name":"Nadeem Hussain","house":"Superiors","grade":"7","section":""},
+  {"id":"S22","name":"Yousuf Qureshi","house":"Superiors","grade":"7","section":""},
+  {"id":"S23","name":"Aziz","house":"Superiors","grade":"7","section":""},
+  {"id":"S24","name":"Safwan","house":"Superiors","grade":"7","section":""},
+  {"id":"S25","name":"Juveriya","house":"Superiors","grade":"7","section":""}
+]
+
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute('CREATE TABLE IF NOT EXISTS votes (candidate_id TEXT, context_type TEXT)')
+    cursor.execute('CREATE TABLE IF NOT EXISTS voter_history (voter_id TEXT, count INTEGER)')
+    cursor.execute('CREATE TABLE IF NOT EXISTS asset_vault (vault_key TEXT PRIMARY KEY, vault_val TEXT)')
+    conn.commit()
+    conn.close()
+
+def get_weight_limit(voter_id):
+    if not str(voter_id).startswith("FAC"): return 1
+    profile = next((p for p in BASE_ROSTER if p["id"] == voter_id), None)
+    if not profile: return 1
+    sec = (profile.get("section") or "").lower()
+    name = (profile.get("name") or "").lower()
+    if "teacher" in sec or "watch" in sec or "driver" in sec or "supporting" in sec or "salman" in name or "admin" in sec or "floor" in sec or "seema" in name:
+        return 2
+    return 5
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/api/get-initial-state')
+def get_initial_state():
+    init_db()
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT vault_val FROM asset_vault WHERE vault_key='custom_config'")
+    row = cursor.fetchone()
+    custom_config = json.loads(row[0]) if row else None
+
+    cursor.execute("SELECT candidate_id, COUNT(*) FROM votes GROUP BY candidate_id")
+    votes_tally = {r[0]: r[1] for r in cursor.fetchall()}
+    cursor.execute("SELECT voter_id, count FROM voter_history")
+    history = {r[0]: r[1] for r in cursor.fetchall()}
+    conn.close()
+
+    return jsonify({
+        "roster": BASE_ROSTER,
+        "votes": votes_tally,
+        "voters": history,
+        "customConfig": custom_config
+    })
+
+@app.route('/api/save-config', methods=['POST'])
+def save_config():
+    data = request.json
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("INSERT OR REPLACE INTO asset_vault (vault_key, vault_val) VALUES ('custom_config', ?)", (json.dumps(data),))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+
+@app.route('/api/cast-vote', methods=['POST'])
+def cast_vote():
+    data = request.json
+    voter_id = data.get('voterId')
+    selections = data.get('selections')
+
+    limit = get_weight_limit(voter_id)
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT count FROM voter_history WHERE voter_id=?", (voter_id,))
+    row = cursor.fetchone()
+    current_count = row[0] if row else 0
+
+    if current_count >= limit:
+        conn.close()
+        return jsonify({"success": False, "error": "Allocations spent."}), 400
+
+    for cand_id in selections:
+        if cand_id:
+            cursor.execute("INSERT INTO votes (candidate_id, context_type) VALUES (?, 'general')", (cand_id,))
+
+    next_count = current_count + 1
+    cursor.execute("INSERT OR REPLACE INTO voter_history (voter_id, count) VALUES (?, ?)", (voter_id, next_count))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "votes_remaining": limit - next_count})
+
+@app.route('/api/reset', methods=['POST'])
+def reset_database():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("DROP TABLE IF EXISTS votes")
+    cursor.execute("DROP TABLE IF EXISTS voter_history")
+    conn.commit()
+    conn.close()
+    init_db()
+    return jsonify({"success": True})
+
+if __name__ == '__main__':
+    init_db()
+    app.run(host='0.0.0.0', port=5000, debug=True)

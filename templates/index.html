@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIP's Student Council Elections</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAFA;
+    --card-bg: #FFFFFF;
+    --border: #E2E8F0;
+    --text: #1A1A1A;
+    --text-muted: #64748B;
+    --primary: #931111; 
+    --primary-glow: rgba(147, 17, 17, 0.04);
+    --primary-hover: #750D0D;
+    --success: #15803D;
+    --champions-color: #1E40AF;
+    --challengers-color: #B45309;
+    --warriors-color: #166534;
+    --superiors-color: #6D28D9;
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; padding: 60px 20px; -webkit-font-smoothing: antialiased; }
+  .container { max-width: 840px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+  
+  .school-logo-frame {
+    width: 120px; height: 120px; margin: 0 auto 20px; background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 12px;
+    box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.05);
+  }
+  .school-logo-frame img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(26px, 4vw, 36px); font-weight: 700; letter-spacing: -0.03em; color: var(--text); margin-bottom: 6px; }
+  .subtitle { color: var(--text-muted); font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase; }
+
+  .navigation-tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; background: #F1F5F9; border: 1px solid var(--border); padding: 6px; border-radius: 14px; margin-bottom: 40px; }
+  .nav-tab { background: transparent; border: none; color: var(--text-muted); padding: 12px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; border-radius: 10px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+  .nav-tab.active { background: var(--card-bg); color: var(--text); box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05); }
+
+  .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 36px; margin-bottom: 32px; box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.02); }
+  .house-container-card { border: 1px solid var(--border); border-radius: 20px; padding: 32px; margin-bottom: 32px; background: var(--card-bg); box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.02); }
+  .house-container-card.champions-block { border-top: 4px solid var(--champions-color); }
+  .house-container-card.challengers-block { border-top: 4px solid var(--challengers-color); }
+  .house-container-card.warriors-block { border-top: 4px solid var(--warriors-color); }
+  .house-container-card.superiors-block { border-top: 4px solid var(--superiors-color); }
+  
+  .house-block-header { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 24px; letter-spacing: -0.02em; }
+  .champions-block .house-block-header { color: var(--champions-color); }
+  .challengers-block .house-block-header { color: var(--challengers-color); }
+  .warriors-block .house-block-header { color: var(--warriors-color); }
+  .superiors-block .house-block-header { color: var(--superiors-color); }
+  .house-group-title { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: var(--primary); margin-bottom: 24px; letter-spacing: -0.02em; }
+  
+  label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px; }
+  select, input[type="password"], input[type="text"] { width: 100%; padding: 14px 16px; background: var(--card-bg); border: 1px solid #CBD5E1; color: var(--text); border-radius: 12px; font-size: 15px; font-weight: 500; outline: none; transition: all 0.2s ease; }
+  select:focus, input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(147, 17, 17, 0.08); }
+  
+  .position-group-title { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); margin: 28px 0 12px; display: flex; align-items: center; gap: 12px; letter-spacing: -0.01em; }
+  .position-group-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .candidate-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+  @media (max-width: 600px) { .candidate-card-grid { grid-template-columns: 1fr; } }
+  
+  .candidate-item { display: flex; align-items: center; gap: 18px; padding: 20px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
+  .candidate-item:hover { border-color: #94A3B8; transform: translateY(-2px); box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.04); }
+  .candidate-item.selected { border-color: var(--primary); background: var(--primary-glow); }
+  .checkbox-circle { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #CBD5E1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s ease; }
+  .candidate-item.selected .checkbox-circle { border-color: var(--primary); background: var(--primary); }
+  .checkbox-circle::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--card-bg); transform: scale(0); transition: transform 0.2s ease; }
+  .candidate-item.selected .checkbox-circle::after { transform: scale(1); }
+  
+  .avatar { width: 64px; height: 64px; border-radius: 14px; object-fit: contain; border: 1px solid var(--border); background: transparent; }
+  
+  /* CRITICAL CHANGE: INCREASED MINI-EMBLEM CORNER LOGO TO 42px SQUARE RENDER */
+  .mini-emblem { 
+    position: absolute; 
+    top: -10px; 
+    right: -10px; 
+    width: 42px; 
+    height: 42px; 
+    border-radius: 10px; 
+    border: 2px solid var(--card-bg); 
+    background: #FFFFFF; 
+    object-fit: contain; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    z-index: 10;
+  }
+  
+  .avatar-fallback { width: 64px; height: 64px; border-radius: 14px; background: #F1F5F9; display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; color: var(--text-muted); border: 1px solid var(--border); }
+  
+  .cand-name { font-weight: 700; font-size: 15px; color: var(--text); }
+  .btn { width: 100%; padding: 18px; border-radius: 14px; border: none; background: var(--primary); color: #FFFFFF; font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 0.02em; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(147, 17, 17, 0.2); }
+  .btn:hover { background: var(--primary-hover); box-shadow: 0 6px 20px rgba(147, 17, 17, 0.3); transform: translateY(-1px); }
+  .stamp-box { text-align: center; padding: 48px; }
+  .stamp { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; color: var(--success); border: 3px solid var(--success); padding: 10px 24px; display: inline-block; border-radius: 10px; transform: rotate(-3deg); margin-bottom: 24px; text-transform: uppercase; letter-spacing: 0.05em; }
+  
+  .bar-container { margin-bottom: 18px; }
+  .bar-header { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+  .bar-track { height: 8px; background: #F1F5F9; border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--primary); border-radius: 4px; width: 0; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+  .config-row { display: flex; gap: 16px; margin-bottom: 16px; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; flex-wrap: wrap; }
+  footer.foot { text-align: center; margin-top: 40px; font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.03em; }
+</style>
+</head>
+<body>
+
+<div class="container" id="app"></div>
+
+<script>
+let state = { view: "vote", roster: [], votes: {}, voters: {}, config: null, selectedGrade: "", selectedVoterId: "", selections: {}, isAdmin: false, error: "" };
+
+async function initSync() {
+  const res = await fetch('/api/get-initial-state');
+  const data = await res.json();
+  state.roster = data.roster;
+  state.votes = data.votes;
+  state.voters = data.voters;
+  state.config = data.customConfig || window.DEFAULT_STABLE_CONFIG;
+  render();
+}
+
+window.DEFAULT_STABLE_CONFIG = {
+  schoolName: "VIP's INTERNATIONAL SCHOOL",
+  electionTitle: "Student Council Elections, FLK Branch",
+  year: "2026", passcode: "admin2026", schoolLogo: "https://i.imgur.com/G3bY9hP.png", 
+  positions: [
+    { id: "headboy", title: "Head Boy", category: "general", candidates: [{id:"hb-a", name:"Khaja Ahsan Uddin (G8)", slogan:"", photo:"", logo:""},{id:"hb-b", name:"Yahiya Zain (G8)", slogan:"", photo:"", logo:""}] },
+    { id: "headgirl", title: "Head Girl", category: "general", candidates: [{id:"hg-a", name:"Zunairah Begum (G8)", slogan:"", photo:"", logo:""},{id:"hg-b", name:"Zunairah Amtul Aleem (G8)", slogan:"", photo:"", logo:""}] },
+    { id: "sportscaptain", title: "Sports Captain", category: "general", candidates: [{id:"sc-a", name:"Ahmad Ali (G6)", slogan:"", photo:"", logo:""},{id:"sc-b", name:"Aziz (G7)", slogan:"", photo:"", logo:""}] },
+    { id: "sportsvicecaptain", title: "Sports Vice Captain", category: "general", candidates: [{id:"svc-a", name:"Juveriya Fatima (G7)", slogan:"", photo:"", logo:""},{id:"svc-b", name:"Madiha Bakooban (G6)", slogan:"", photo:"", logo:""}] },
+    { id: "ecogroupcaptain", title: "Eco Group Captain", category: "general", candidates: [{id:"egc-a", name:"Zara Saleem (G6)", slogan:"", photo:"", logo:""},{id:"egc-b", name:"Samaira Noor (G5)", slogan:"", photo:"", logo:""}] },
+    { id: "ecogroupvicecaptain", title: "Eco Group Vice Captain", category: "general", candidates: [{id:"egvc-a", name:"Abdul Rahman (G6)", slogan:"", photo:"", logo:""},{id:"egvc-b", name:"Rayyan (G6)", slogan:"", photo:"", logo:""}] },
+    { id: "apple_captain", title: "Apple Group Captain", category: "general", candidates: [{id:"ac-a", name:"Arhaan Uddin (G8)", slogan:"", photo:"", logo:""},{id:"ac-b", name:"Abdul Kabeer (G6)", slogan:"", photo:"", logo:""}] },
+    { id: "apple_vicecaptain", title: "Apple Group Vice Captain", category: "general", candidates: [{id:"avc-a", name:"Maryam Fatima (G5)", slogan:"", photo:"", logo:""},{id:"avc-b", name:"Ummul Hamda (G7)", slogan:"", photo:"", logo:""}] },
+    
+    { id: "champions_captain", title: "House Captain", house: "Champions", category: "house", candidates: [{id:"chc-a", name:"Tameem Rahil Bhat (G6)", slogan:"", photo:"", logo:""},{id:"chc-b", name:"Abdullah Syed Hassan (G8)", slogan:"", photo:"", logo:""}] },
+    { id: "champions_vicecaptain", title: "House Vice Captain", house: "Champions", category: "house", candidates: [{id:"chvc-a", name:"Saddiq Qureshi (G7)", slogan:"", photo:"", logo:""},{id:"chvc-b", name:"Zain Mahmood (G5)", slogan:"", photo:"", logo:""}] },
+    { id: "challengers_captain", title: "House Captain", house: "Challengers", category: "house", candidates: [{id:"cc-a", name:"Taha Syed Najeeb (G7)", slogan:"", photo:"", logo:""},{id:"cc-b", name:"Mohammed Muhammed (G5)", slogan:"", photo:"", logo:""}] },
+    { id: "challengers_vicecaptain", title: "House Vice Captain", house: "Challengers", category: "house", candidates: [{id:"cvc-a", name:"Syed Uzair (G6)", slogan:"", photo:"", logo:""},{id:"cvc-b", name:"Furqan (G7)", slogan:"", photo:"", logo:""}] },
+    { id: "superiors_captain", title: "House Captain", house: "Superiors", category: "house", candidates: [{ id: "suc-a", name: "Rabah Ur Rahman (G7)", slogan:"", photo:"", logo:"" }, { id: "suc-b", name: "Sanaullah (G7)", slogan:"", photo:"", logo:"" }] },
+    { id: "superiors_vicecaptain", title: "House Vice Captain", house: "Superiors", category: "house", candidates: [{ id: "suvc-a", name: "Arbiya Fatima (G7)", slogan:"", photo:"", logo:"" }, { id: "suvc-b", name: "Afeefah Fatima (G6)", slogan:"", photo:"", logo:"" }] },
+    { id: "warriors_captain", title: "House Captain", house: "Warriors", category: "house", candidates: [{ id: "wc-a", name: "Munnaza Zareen (G7)", slogan:"", photo:"", logo:"" }, { id: "wc-b", name: "Zunaira Hyder (G5)", slogan:"", photo:"", logo:"" }] },
+    { id: "warriors_vicecaptain", title: "House Vice Captain", house: "Warriors", category: "house", candidates: [{ id: "wvc-a", name: "Durar Hadi (G5)", slogan:"", photo:"", logo:"" }, { id: "wvc-b", name: "Syeda Mahreen (G7)", slogan:"", photo:"", logo:"" }] }
+  ]
+};
+
+function getWeightLimit(profile) {
+  if (!profile) return 1; if (profile.grade !== "Faculty & Staff") return 1;
+  const sec = (profile.section || "").toLowerCase(); const name = (profile.name || "").toLowerCase();
+  if (sec.includes("teacher") || sec.includes("watch") || sec.includes("driver") || sec.includes("supporting") || name.includes("salman") || sec.includes("admin") || sec.includes("floor") || name.includes("seema")) return 2;
+  return 5;
+}
+
+function getStaffOrderScore(section) {
+  const s = (section || "").toLowerCase();
+  if (s.includes("managing director")) return 1; if (s.includes("academic director")) return 2;
+  if (s.includes("academic coordinator")) return 3; if (s.includes("academic incharge")) return 4;
+  if (s.includes("hod")) return 5; if (s.includes("admin incharge")) return 6;
+  if (s.includes("floor")) return 7; if (s.includes("in charge") || s.includes("seema")) return 8; if (s.includes("admin")) return 9;
+  if (s.includes("teacher")) return 10; if (s.includes("driver")) return 11; if (s.includes("watch man")) return 12;
+  return 13;
+}
+
+function render() {
+  const root = document.getElementById("app"); const cfg = state.config || window.DEFAULT_STABLE_CONFIG;
+  let html = `<header><div class="school-logo-frame"><img src="${cfg.schoolLogo || 'https://i.imgur.com/G3bY9hP.png'}"></div><h1>${esc(cfg.schoolName)}</h1><div class="subtitle">${esc(cfg.electionTitle)} &middot; ${esc(cfg.year)}</div></header>`;
+  
+  html += `<div class="navigation-tabs">
+    <button class="nav-tab ${state.view==='vote'||state.view==='voted'?'active':''}" onclick="state.isAdmin=false; state.view='vote'; render();">Ballot Port</button>
+    <button class="nav-tab ${state.view==='admin'||state.view==='admin-login'?'active':''}" onclick="state.view=state.isAdmin?'admin':'admin-login'; render();">Metrics Dashboard</button>
+  </div>`;
+  
+  if (state.view === "vote") html += renderBallot();
+  else if (state.view === "voted") html += renderReceipt();
+  else if (state.view === "admin-login") html += renderAdminLogin();
+  else if (state.view === "admin") html += renderAdminDashboard();
+  root.innerHTML = html; attachListeners();
+}
+
+function renderBallot() {
+  let html = `<div class="card">`;
+  const grades = Array.from(new Set(state.roster.map(s => s.grade))).sort((a, b) => {
+    if (a === "Faculty & Staff") return 1; if (b === "Faculty & Staff") return -1;
+    return parseInt(a) - parseInt(b);
+  });
+  html += `<label>Identify Grade Context</label><select id="gradeSelect"><option value="">Choose grade...</option>`;
+  grades.forEach(g => html += `<option value="${g}" ${state.selectedGrade===g?'selected':''}>${g==='Faculty & Staff'?g:'Grade '+g}</option>`);
+  html += `</select><div style="height:20px"></div>`;
+
+  html += `<label>Select Profile Name</label><select id="voterSelect" ${state.selectedGrade?'':'disabled'}><option value="">Choose your profile name...</option>`;
+  if (state.selectedGrade) {
+    state.roster.filter(s => s.grade === state.selectedGrade).sort((a, b) => {
+      if (state.selectedGrade === "Faculty & Staff") return (getStaffOrderScore(a.section) - getStaffOrderScore(b.section)) || a.name.localeCompare(b.name);
+      return a.name.localeCompare(b.name);
+    }).forEach(s => {
+      let limit = getWeightLimit(s); let casted = state.voters[s.id] || 0; let rem = limit - casted;
+      let suffix = s.section ? ` (${s.section})` : '';
+      html += `<option value="${s.id}" ${rem<=0?'disabled':''} ${state.selectedVoterId===s.id?'selected':''}>${esc(s.name)}${suffix}</option>`;
+    });
+  }
+  html += `</select></div>`;
+
+  if (!state.selectedVoterId) return html;
+  const currentVoter = state.roster.find(v => v.id === state.selectedVoterId);
+  
+  html += `<div class="card"><h2 class="house-group-title" style="color:var(--text)">General School Ballot</h2>`;
+  state.config.positions.filter(p => p.category === "general").forEach(pos => {
+    html += `<div class="position-group-title">${esc(pos.title)}</div><div class="candidate-card-grid">`;
+    pos.candidates.forEach(c => {
+      const isSelected = state.selections[pos.id] === c.id;
+      html += `<div class="candidate-item ${isSelected?'selected':''}" data-pos="${pos.id}" data-cand="${c.id}">
+        <div class="checkbox-circle"></div>
+        ${c.photo ? `<img src="${c.photo}" class="avatar">` : `<div class="avatar-fallback">${esc(c.name.slice(0,2))}</div>`}
+        ${c.logo ? `<img src="${c.logo}" class="mini-emblem">` : ''}
+        <div><div class="cand-name">${esc(c.name)}</div>${c.slogan?`<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">"${esc(c.slogan)}"</div>`:''}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  html += `</div>`;
+
+  ["Champions", "Challengers", "Warriors", "Superiors"].forEach(houseName => {
+    if (currentVoter.grade !== "Faculty & Staff" && currentVoter.house !== houseName) return;
+    html += `<div class="house-container-card ${houseName.toLowerCase()}-block"><div class="house-block-header">${houseName} House Nominees</div>`;
+    state.config.positions.filter(p => p.category === "house" && p.house === houseName).forEach(pos => {
+      html += `<div class="position-group-title">${esc(pos.title)}</div><div class="candidate-card-grid">`;
+      pos.candidates.forEach(c => {
+        const isSelected = state.selections[pos.id] === c.id;
+        html += `<div class="candidate-item ${isSelected?'selected':''}" data-pos="${pos.id}" data-cand="${c.id}">
+          <div class="checkbox-circle"></div>
+          ${c.photo ? `<img src="${c.photo}" class="avatar">` : `<div class="avatar-fallback">${esc(c.name.slice(0,2))}</div>`}
+          ${c.logo ? `<img src="${c.logo}" class="mini-emblem">` : ''}
+          <div><div class="cand-name">${esc(c.name)}</div>${c.slogan?`<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">"${esc(c.slogan)}"</div>`:''}</div>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+
+  html += `<button class="btn" id="castBallotBtn">Submit Completed Ballot</button>`;
+  return html;
+}
+
+function renderReceipt() {
+  return `<div class="card stamp-box"><div class="stamp">Ballot Filed</div><p style="font-size:16px;margin-bottom:12px">Thank you, <strong>${esc(state.lastReceipt.name)}</strong>.</p><div class="subtitle" style="color:var(--primary);font-weight:700;font-size:16px">${state.lastReceipt.rem}</div><button class="btn" style="margin-top:24px;max-width:200px" onclick="state.view='vote';render();">Next Voter</button></div>`;
+}
+
+function renderAdminLogin() {
+  return `<div class="card" style="max-width:400px;margin:0 auto"><label>Dashboard Key</label><input type="password" id="adminPass" placeholder="••••••••" style="margin-bottom:16px"><button class="btn" id="loginBtn">Unlock</button></div>`;
+}
+
+function renderAdminDashboard() {
+  let html = `<div class="card"><h2 class="house-group-title" style="margin-bottom:24px">Live Metrics Summary</h2>`;
+  ["General Polls", "Champions", "Challengers", "Warriors", "Superiors"].forEach(dir => {
+    html += `<h3 style="font-family:'Space Grotesk';margin-top:20px;color:var(--text-muted);font-size:16px;text-transform:uppercase">${dir} Directory</h3>`;
+    state.config.positions.forEach(pos => {
+      let matches = (dir === "General Polls" && !pos.house) || (pos.house === dir);
+      if (matches) {
+        html += `<div style="font-size:14px;font-weight:700;margin:14px 0 8px">${esc(pos.title)}</div>`;
+        pos.candidates.forEach(c => {
+          let score = state.votes[c.id] || 0;
+          html += `<div class="bar-container"><div class="bar-header"><span>${esc(c.name)}</span><span class="bar-count">${score} votes</span></div><div class="bar-track"><div class="bar-fill" style="width:${Math.min(100, score * 5)}%"></div></div></div>`;
+        });
+      }
+    });
+  });
+  html += `</div>`;
+
+  html += `<div class="card"><h2 class="house-group-title">Global Branding Configuration</h2>
+    <div style="margin-bottom:16px">
+      <label>School Header Logo File</label>
+      <input type="file" accept="image/*" id="schoolLogoFileInput" style="margin-bottom:12px">
+      <label>Alternative Branding Link/URL</label>
+      <input type="text" id="schoolLogoUrlInput" placeholder="https://..." value="${esc(state.config.schoolLogo)}">
+    </div>
+  </div>`;
+
+  html += `<div class="card"><h2 class="house-group-title">Media Vault Manager</h2>`;
+  state.config.positions.forEach(pos => {
+    html += `<div style="font-size:14px;font-weight:800;color:var(--primary);margin:16px 0 8px;">${esc(pos.title)} ${pos.house?'['+pos.house+']':''}</div>`;
+    pos.candidates.forEach(c => {
+      html += `<div class="config-row">
+        <div style="flex:1;min-width:150px;font-size:13px;font-weight:600;">${esc(c.name)}</div>
+        <input type="text" placeholder="Campaign Slogan" value="${esc(c.slogan)}" data-slogan-id="${pos.id}|${c.id}" style="flex:1;padding:8px;font-size:13px;">
+        <label class="nav-tab" style="cursor:pointer;padding:6px 12px;background:#CBD5E1;color:#1A1A1A;font-size:11px;border-radius:6px;margin:0;">Photo <input type="file" accept="image/*" data-photo-id="${pos.id}|${c.id}" style="display:none;"></label>
+        <label class="nav-tab" style="cursor:pointer;padding:6px 12px;background:#CBD5E1;color:#1A1A1A;font-size:11px;border-radius:6px;margin:0;">Logo <input type="file" accept="image/*" data-logo-id="${pos.id}|${c.id}" style="display:none;"></label>
+      </div>`;
+    });
+  });
+  html += `<button class="btn" id="saveVaultBtn" style="margin-top:16px;">Save Asset Parameters</button></div>`;
+  html += `<div class="card"><button class="btn" id="resetBtn" style="background:#dc2626;max-width:200px">Wipe Database</button></div>`;
+  return html;
+}
+
+function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader(); reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error);
+  });
+}
+
+function attachListeners() {
+  const gradeEl = document.getElementById("gradeSelect");
+  if(gradeEl) gradeEl.addEventListener('change', (e)=>{ state.selectedGrade = e.target.value; state.selectedVoterId=""; state.selections={}; render(); });
+  const voterEl = document.getElementById("voterSelect");
+  if(voterEl) voterEl.addEventListener('change', (e)=>{ state.selectedVoterId = e.target.value; state.selections={}; render(); });
+
+  document.querySelectorAll(".candidate-item").forEach(item => {
+    item.addEventListener('click', () => { state.selections[item.dataset.pos] = item.dataset.cand; render(); });
+  });
+
+  const saveVaultBtn = document.getElementById("saveVaultBtn");
+  if(saveVaultBtn) {
+    saveVaultBtn.addEventListener('click', async () => {
+      document.querySelectorAll('[data-slogan-id]').forEach(input => {
+        const [posId, candId] = input.dataset.sloganId.split('|');
+        const pos = state.config.positions.find(p => p.id === posId);
+        const cand = pos.candidates.find(c => c.id === candId);
+        cand.slogan = input.value.trim();
+      });
+      
+      const urlInput = document.getElementById("schoolLogoUrlInput");
+      if(urlInput && urlInput.value.trim()) {
+        state.config.schoolLogo = urlInput.value.trim();
+      }
+
+      await fetch('/api/save-config', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(state.config) });
+      alert("Campaign assets and logos synchronized successfully."); initSync();
+    });
+  }
+
+  const logoFileInput = document.getElementById("schoolLogoFileInput");
+  if(logoFileInput) {
+    logoFileInput.addEventListener('change', async (e) => {
+      if(!e.target.files[0]) return;
+      state.config.schoolLogo = await toBase64(e.target.files[0]);
+    });
+  }
+
+  document.querySelectorAll('[data-photo-id]').forEach(input => {
+    input.addEventListener('change', async (e) => {
+      if(!e.target.files[0]) return;
+      const [posId, candId] = input.dataset.photoId.split('|');
+      const pos = state.config.positions.find(p => p.id === posId);
+      const cand = pos.candidates.find(c => c.id === candId);
+      cand.photo = await toBase64(e.target.files[0]);
+    });
+  });
+
+  document.querySelectorAll('[data-logo-id]').forEach(input => {
+    input.addEventListener('change', async (e) => {
+      if(!e.target.files[0]) return;
+      const [posId, candId] = input.dataset.logoId.split('|');
+      const pos = state.config.positions.find(p => p.id === posId);
+      const cand = pos.candidates.find(c => c.id === candId);
+      cand.logo = await toBase64(e.target.files[0]);
+    });
+  });
+
+  const castBtn = document.getElementById("castBallotBtn");
+  if(castBtn) castBtn.addEventListener('click', async () => {
+    const voter = state.roster.find(v => v.id === state.selectedVoterId);
+    const activeSelections = Object.values(state.selections);
+    const res = await fetch('/api/cast-vote', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ voterId: voter.id, selections: activeSelections }) });
+    const reply = await res.json();
+    if(reply.success) {
+      state.lastReceipt = { name: voter.name, rem: reply.votes_remaining === 1 ? "You have 1 vote remaining" : "You have " + reply.votes_remaining + " votes remaining" };
+      state.view = "voted"; state.selections = {}; state.selectedGrade = ""; state.selectedVoterId = ""; initSync();
+    } else { alert(reply.error); }
+  });
+
+  const loginBtn = document.getElementById("loginBtn");
+  if(loginBtn) loginBtn.addEventListener('click', () => {
+    if(document.getElementById("adminPass").value === state.config.passcode) { state.isAdmin = true; state.view = "admin"; render(); }
+    else { alert("Invalid access credentials."); }
+  });
+
+  const resetBtn = document.getElementById("resetBtn");
+  if(resetBtn) resetBtn.addEventListener('click', async () => {
+    if(!confirm("Wipe tally transactions?")) return;
+    await fetch('/api/reset', {method:'POST'}); initSync();
+  });
+}
+
+function esc(s){ return s ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : ''; }
+initSync();
+</script>
+</body>
+</html>
