@@ -279,12 +279,26 @@ def export_pdf():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
 
+    cursor.execute("SELECT vault_val FROM asset_vault WHERE vault_key='custom_config'")
+    row = cursor.fetchone()
+
+    config = json.loads(row[0]) if row else {}
+
+    # Create candidate lookup
+    candidate_lookup = {}
+
+    for position in config.get("positions", []):
+        for candidate in position["candidates"]:
+            candidate_lookup[candidate["id"]] = {
+                "name": candidate["name"],
+                "position": position["title"]
+            }
+
     cursor.execute("""
-        SELECT candidate_id,
-               COUNT(candidate_id)
+        SELECT candidate_id, COUNT(*)
         FROM votes
         GROUP BY candidate_id
-        ORDER BY COUNT(candidate_id) DESC
+        ORDER BY COUNT(*) DESC
     """)
 
     rows = cursor.fetchall()
@@ -296,28 +310,33 @@ def export_pdf():
     pdf = canvas.Canvas(filename)
 
     pdf.setFont("Helvetica-Bold",18)
-
-    pdf.drawString(180,800,"Election Results")
+    pdf.drawString(170,800,"Election Results")
 
     y = 760
 
     pdf.setFont("Helvetica",12)
 
-    for candidate,votes in rows:
+    for candidate_id, votes in rows:
 
-        pdf.drawString(80,y,candidate)
+        info = candidate_lookup.get(candidate_id)
 
-        pdf.drawString(350,y,str(votes))
+        if info:
+            text = f"{info['position']} - {info['name']} : {votes} Votes"
+        else:
+            text = f"{candidate_id} : {votes} Votes"
 
-        y -= 25
+        pdf.drawString(40,y,text)
+
+        y -= 22
 
         if y < 60:
             pdf.showPage()
+            pdf.setFont("Helvetica",12)
             y = 800
 
     pdf.save()
 
-    return send_file(filename,as_attachment=True)
+    return send_file(filename, as_attachment=True)
 
 if __name__ == '__main__':
     init_db()
