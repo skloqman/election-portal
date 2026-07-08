@@ -1,8 +1,10 @@
 import os
 import json
-import sqlite3
 import cloudinary
 import cloudinary.uploader
+
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 from flask import Flask, render_template, request, jsonify, send_file
 
@@ -10,13 +12,18 @@ from openpyxl import Workbook
 from reportlab.pdfgen import canvas
 
 app = Flask(__name__, template_folder='templates')
+import os
+
 cloudinary.config(
-    cloud_name="elp5alks",
-    api_key="255227795427121",
-    api_secret="58LQwglKjQ3muJwMUJCPfN5wx7s",
+    cloud_name=os.environ["CLOUDINARY_CLOUD_NAME"],
+    api_key=os.environ["CLOUDINARY_API_KEY"],
+    api_secret=os.environ["CLOUDINARY_API_SECRET"],
     secure=True
 )
-DB_FILE = "database.db"
+DATABASE_URL = os.environ["DATABASE_URL"]
+
+def get_connection():
+    return psycopg2.connect(DATABASE_URL)
 
 # SEQUENCED CORRECTIONS: Ms. Seema Jabbar is now sorted directly beneath the Floor Incharge position
 BASE_ROSTER = [
@@ -160,23 +167,33 @@ BASE_ROSTER = [
 ]
 
 def init_db():
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute('CREATE TABLE IF NOT EXISTS votes (candidate_id TEXT, context_type TEXT)')
-    cursor.execute('CREATE TABLE IF NOT EXISTS voter_history (voter_id TEXT, count INTEGER)')
-    cursor.execute('CREATE TABLE IF NOT EXISTS asset_vault (vault_key TEXT PRIMARY KEY, vault_val TEXT)')
-    conn.commit()
-    conn.close()
+    conn = get_connection()
+    cur = conn.cursor()
 
-def get_weight_limit(voter_id):
-    if not str(voter_id).startswith("FAC"): return 1
-    profile = next((p for p in BASE_ROSTER if p["id"] == voter_id), None)
-    if not profile: return 1
-    sec = (profile.get("section") or "").lower()
-    name = (profile.get("name") or "").lower()
-    if "teacher" in sec or "watch" in sec or "driver" in sec or "supporting" in sec or "salman" in name or "admin" in sec or "floor" in sec or "seema" in name:
-        return 2
-    return 5
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS votes (
+        candidate_id TEXT,
+        context_type TEXT
+    )
+    """)
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS voter_history (
+        voter_id TEXT PRIMARY KEY,
+        count INTEGER
+    )
+    """)
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS asset_vault (
+        vault_key TEXT PRIMARY KEY,
+        vault_val JSONB
+    )
+    """)
+
+    conn.commit()
+    cur.close()
+    conn.close()
 
 @app.route('/')
 def home():
