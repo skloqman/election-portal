@@ -116,6 +116,7 @@ async function initSync() {
   state.votes = data.votes;
   state.voters = data.voters;
   state.config = data.customConfig || window.DEFAULT_STABLE_CONFIG;
+  state.percentages = data.percentages || {};
   render();
 }
 
@@ -210,7 +211,7 @@ function renderBallot() {
   
   html += `<div class="card"><h2 class="house-group-title" style="color:var(--text)">General School Ballot</h2>`;
   state.config.positions.filter(p => p.category === "general").forEach(pos => {
-    html += `<div class="position-group-title">${houseName} ${esc(pos.title)}</div><div class="candidate-card-grid">`;
+    html += `<div class="position-group-title">${esc(pos.title)}</div><div class="candidate-card-grid">`;
     pos.candidates.forEach(c => {
       const isSelected = state.selections[pos.id] === c.id;
       html += `<div class="candidate-item ${isSelected?'selected':''}" data-pos="${pos.id}" data-cand="${c.id}">
@@ -228,7 +229,7 @@ function renderBallot() {
     if (currentVoter.grade !== "Faculty & Staff" && currentVoter.house !== houseName) return;
     html += `<div class="house-container-card ${houseName.toLowerCase()}-block"><div class="house-block-header">${houseName} House Nominees</div>`;
     state.config.positions.filter(p => p.category === "house" && p.house === houseName).forEach(pos => {
-      html += `<div class="position-group-title">${esc(pos.title)}</div><div class="candidate-card-grid">`;
+      html += `<div class="position-group-title">${houseName} ${esc(pos.title)}</div><div class="candidate-card-grid">`;
       pos.candidates.forEach(c => {
         const isSelected = state.selections[pos.id] === c.id;
         html += `<div class="candidate-item ${isSelected?'selected':''}" data-pos="${pos.id}" data-cand="${c.id}">
@@ -311,8 +312,11 @@ if(state.adminTab==="dashboard"){
 `;
 state.config.positions.forEach(position => {
 
-html += `<div class="position-group-title"><h2>${currentHouse.name} ${position.title}</h2></div>`;
+const title = position.house
+    ? `${position.house} ${position.title}`
+    : position.title;
 
+html += `<div class="position-group-title"><h2>${title}</h2></div>`;
 const counts = {};
 
 position.candidates.forEach(candidate => {
