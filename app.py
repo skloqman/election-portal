@@ -15,12 +15,15 @@ app = Flask(__name__, template_folder='templates')
 import os
 
 cloudinary.config(
-    cloud_name=os.environ["CLOUDINARY_CLOUD_NAME"],
-    api_key=os.environ["CLOUDINARY_API_KEY"],
-    api_secret=os.environ["CLOUDINARY_API_SECRET"],
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME", "elp5alks"),
+    api_key=os.getenv("CLOUDINARY_API_KEY", "255227795427121"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET", "58LQwglKjQ3muJwMUJCPfN5wx7s"),
     secure=True
 )
-DATABASE_URL = os.environ["DATABASE_URL"]
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres.txffcbpthqdfuvccbqhd:Mskbtech477%40@aws-1-ap-south-1.pooler.supabase.com:6543/postgres"
+)
 
 def get_connection():
     return psycopg2.connect(DATABASE_URL)
