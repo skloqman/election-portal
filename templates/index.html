@@ -544,7 +544,7 @@
       html += `
 <footer class="foot">
     © 2026 VIP's International School <br>
-     Designed & Developed by <strong>Shaukat Khan Loqman(Computer Faculty, FLK)</strong>
+     Designed & Developed by <strong>Shaukat Khan Loqman</strong>
 </footer>`;
       root.innerHTML = html; attachListeners();
     }
@@ -1002,6 +1002,32 @@ Print Results
           }
         });
       }
+      const loginBtn = document.getElementById("loginBtn");
+
+        if (loginBtn) {
+             loginBtn.addEventListener("click", () => {
+               if (document.getElementById("adminPass").value === state.config.passcode) {
+                  state.isAdmin = true;
+                  state.view = "admin";
+                  render();
+                } else {
+                   alert("Invalid access credentials.");
+                }
+         });
+         const resetBtn = document.getElementById("resetBtn");
+
+        if (resetBtn) {
+             resetBtn.addEventListener("click", async () => {
+                if (!confirm("Wipe tally transactions?")) return;
+
+                     await fetch("/api/reset", {
+                      method: "POST"
+             });
+
+                   initSync();
+              });
+}
+}
     }
       function esc(s) { return s ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : ''; }
       initSync();
