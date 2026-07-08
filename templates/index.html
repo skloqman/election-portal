@@ -133,14 +133,14 @@ window.DEFAULT_STABLE_CONFIG = {
     { id: "apple_captain", title: "Apple Group Captain", category: "general", candidates: [{id:"ac-a", name:"Arhaan Uddin (G8)", slogan:"", photo:"", logo:""},{id:"ac-b", name:"Abdul Kabeer (G6)", slogan:"", photo:"", logo:""}] },
     { id: "apple_vicecaptain", title: "Apple Group Vice Captain", category: "general", candidates: [{id:"avc-a", name:"Maryam Fatima (G5)", slogan:"", photo:"", logo:""},{id:"avc-b", name:"Ummul Hamda (G7)", slogan:"", photo:"", logo:""}] },
     
-    { id: "champions_captain", title: "champions House Captain", house: "Champions", category: "house", candidates: [{id:"chc-a", name:"Tameem Rahil Bhat (G6)", slogan:"", photo:"", logo:""},{id:"chc-b", name:"Abdullah Syed Hassan (G8)", slogan:"", photo:"", logo:""}] },
-    { id: "champions_vicecaptain", title: "champions House Vice Captain", house: "Champions", category: "house", candidates: [{id:"chvc-a", name:"Saddiq Qureshi (G7)", slogan:"", photo:"", logo:""},{id:"chvc-b", name:"Zain Mahmood (G5)", slogan:"", photo:"", logo:""}] },
-    { id: "challengers_captain", title: "challengers House Captain", house: "Challengers", category: "house", candidates: [{id:"cc-a", name:"Taha Syed Najeeb (G7)", slogan:"", photo:"", logo:""},{id:"cc-b", name:"Mohammed Muhammed (G5)", slogan:"", photo:"", logo:""}] },
-    { id: "challengers_vicecaptain", title: "challengers House Vice Captain", house: "Challengers", category: "house", candidates: [{id:"cvc-a", name:"Syed Uzair (G6)", slogan:"", photo:"", logo:""},{id:"cvc-b", name:"Furqan (G7)", slogan:"", photo:"", logo:""}] },
-    { id: "superiors_captain", title: "superiors House Captain", house: "Superiors", category: "house", candidates: [{ id: "suc-a", name: "Rabah Ur Rahman (G7)", slogan:"", photo:"", logo:"" }, { id: "suc-b", name: "Sanaullah (G7)", slogan:"", photo:"", logo:"" }] },
-    { id: "superiors_vicecaptain", title: "superiors House Vice Captain", house: "Superiors", category: "house", candidates: [{ id: "suvc-a", name: "Arbiya Fatima (G7)", slogan:"", photo:"", logo:"" }, { id: "suvc-b", name: "Afeefah Fatima (G6)", slogan:"", photo:"", logo:"" }] },
-    { id: "warriors_captain", title: "warriors House Captain", house: "Warriors", category: "house", candidates: [{ id: "wc-a", name: "Munnaza Zareen (G7)", slogan:"", photo:"", logo:"" }, { id: "wc-b", name: "Zunaira Hyder (G5)", slogan:"", photo:"", logo:"" }] },
-    { id: "warriors_vicecaptain", title: "warriors House Vice Captain", house: "Warriors", category: "house", candidates: [{ id: "wvc-a", name: "Durar Hadi (G5)", slogan:"", photo:"", logo:"" }, { id: "wvc-b", name: "Syeda Mahreen (G7)", slogan:"", photo:"", logo:"" }] }
+    { id: "champions_captain", title: "House Captain", house: "Champions", category: "house", candidates: [{id:"chc-a", name:"Tameem Rahil Bhat (G6)", slogan:"", photo:"", logo:""},{id:"chc-b", name:"Abdullah Syed Hassan (G8)", slogan:"", photo:"", logo:""}] },
+    { id: "champions_vicecaptain", title: "House Vice Captain", house: "Champions", category: "house", candidates: [{id:"chvc-a", name:"Saddiq Qureshi (G7)", slogan:"", photo:"", logo:""},{id:"chvc-b", name:"Zain Mahmood (G5)", slogan:"", photo:"", logo:""}] },
+    { id: "challengers_captain", title: "House Captain", house: "Challengers", category: "house", candidates: [{id:"cc-a", name:"Taha Syed Najeeb (G7)", slogan:"", photo:"", logo:""},{id:"cc-b", name:"Mohammed Muhammed (G5)", slogan:"", photo:"", logo:""}] },
+    { id: "challengers_vicecaptain", title: "House Vice Captain", house: "Challengers", category: "house", candidates: [{id:"cvc-a", name:"Syed Uzair (G6)", slogan:"", photo:"", logo:""},{id:"cvc-b", name:"Furqan (G7)", slogan:"", photo:"", logo:""}] },
+    { id: "superiors_captain", title: "House Captain", house: "Superiors", category: "house", candidates: [{ id: "suc-a", name: "Rabah Ur Rahman (G7)", slogan:"", photo:"", logo:"" }, { id: "suc-b", name: "Sanaullah (G7)", slogan:"", photo:"", logo:"" }] },
+    { id: "superiors_vicecaptain", title: "House Vice Captain", house: "Superiors", category: "house", candidates: [{ id: "suvc-a", name: "Arbiya Fatima (G7)", slogan:"", photo:"", logo:"" }, { id: "suvc-b", name: "Afeefah Fatima (G6)", slogan:"", photo:"", logo:"" }] },
+    { id: "warriors_captain", title: "House Captain", house: "Warriors", category: "house", candidates: [{ id: "wc-a", name: "Munnaza Zareen (G7)", slogan:"", photo:"", logo:"" }, { id: "wc-b", name: "Zunaira Hyder (G5)", slogan:"", photo:"", logo:"" }] },
+    { id: "warriors_vicecaptain", title: "House Vice Captain", house: "Warriors", category: "house", candidates: [{ id: "wvc-a", name: "Durar Hadi (G5)", slogan:"", photo:"", logo:"" }, { id: "wvc-b", name: "Syeda Mahreen (G7)", slogan:"", photo:"", logo:"" }] }
   ]
 };
 
@@ -210,7 +210,7 @@ function renderBallot() {
   
   html += `<div class="card"><h2 class="house-group-title" style="color:var(--text)">General School Ballot</h2>`;
   state.config.positions.filter(p => p.category === "general").forEach(pos => {
-    html += `<div class="position-group-title">${esc(pos.title)}</div><div class="candidate-card-grid">`;
+    html += `<div class="position-group-title">${houseName} ${esc(pos.title)}</div><div class="candidate-card-grid">`;
     pos.candidates.forEach(c => {
       const isSelected = state.selections[pos.id] === c.id;
       html += `<div class="candidate-item ${isSelected?'selected':''}" data-pos="${pos.id}" data-cand="${c.id}">
