@@ -239,8 +239,10 @@ def get_initial_state():
     """, ("custom_config",))
 
     row = cur.fetchone()
-
     custom_config = row[0] if row else None
+
+    if isinstance(custom_config, str):
+        custom_config = json.loads(custom_config)
 
     cur.execute("""
         SELECT candidate_id, COUNT(*)
@@ -252,25 +254,23 @@ def get_initial_state():
         r[0]: r[1]
         for r in cur.fetchall()
     }
+
     vote_percentages = {}
 
-if custom_config:
-    for position in custom_config.get("positions", []):
+    if custom_config:
+        for position in custom_config.get("positions", []):
 
-        total_votes = sum(
-            votes_tally.get(candidate["id"], 0)
-            for candidate in position["candidates"]
-        )
+            total_votes = sum(
+                votes_tally.get(candidate["id"], 0)
+                for candidate in position["candidates"]
+            )
 
-        for candidate in position["candidates"]:
+            for candidate in position["candidates"]:
+                votes = votes_tally.get(candidate["id"], 0)
 
-            votes = votes_tally.get(candidate["id"], 0)
-
-            percentage = round(
-                (votes / total_votes) * 100, 2
-            ) if total_votes else 0
-
-            vote_percentages[candidate["id"]] = percentage
+                vote_percentages[candidate["id"]] = round(
+                    (votes / total_votes) * 100, 2
+                ) if total_votes else 0
 
     cur.execute("""
         SELECT voter_id, count
@@ -286,14 +286,13 @@ if custom_config:
     conn.close()
 
     return jsonify({
-    "roster": BASE_ROSTER,
-    "votes": votes_tally,
-    "percentages": vote_percentages,
-    "voters": history,
-    "customConfig": custom_config
-})
+        "roster": BASE_ROSTER,
+        "votes": votes_tally,
+        "percentages": vote_percentages,
+        "voters": history,
+        "customConfig": custom_config
+    })
 
-@app.route('/api/save-config', methods=['POST'])
 @app.route('/api/save-config', methods=['POST'])
 def save_config():
 
@@ -321,7 +320,6 @@ def save_config():
         "success": True
     })
 
-@app.route('/api/cast-vote', methods=['POST'])
 @app.route('/api/cast-vote', methods=['POST'])
 def cast_vote():
 
@@ -389,7 +387,6 @@ def cast_vote():
     })
 
 @app.route('/api/reset', methods=['POST'])
-@app.route('/api/reset', methods=['POST'])
 def reset_database():
 
     conn = get_connection()
@@ -443,7 +440,6 @@ def export_excel():
 
     return send_file(filename, as_attachment=True)
 
-@app.route("/api/export/pdf")
 @app.route("/api/export/pdf")
 def export_pdf():
 
