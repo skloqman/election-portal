@@ -319,7 +319,13 @@ def get_initial_state():
 @app.route('/api/save-config', methods=['POST'])
 def save_config():
 
-    data = request.json
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "success": False,
+             "error": "No JSON received"
+         }), 400
 
     conn = get_connection()
     cur = conn.cursor()
@@ -346,20 +352,32 @@ def save_config():
 @app.route('/api/cast-vote', methods=['POST'])
 def cast_vote():
     try:
+        data = request.get_json()
 
-        data = request.json
+        if not data:
+            return jsonify({
+                "success": False,
+                "error": "No JSON received"
+            }), 400
 
         voter_id = data.get("voterId")
-        selections = data.get("selections")
+
+        if not voter_id:
+            return jsonify({
+                "success": False,
+                "error": "Invalid voter."
+            }), 400
+
+        selections = data.get("selections", [])
 
         limit = get_weight_limit(voter_id)
 
         conn = get_connection()
         cur = conn.cursor()
-
+        
         cur.execute(
-            "SELECT count FROM voter_history WHERE voter_id=%s",
-            (voter_id,)
+             "SELECT count FROM voter_history WHERE voter_id=%s",
+             (voter_id,)
         )
 
         row = cur.fetchone()
@@ -367,51 +385,46 @@ def cast_vote():
         current_count = row[0] if row else 0
 
         if current_count >= limit:
+              cur.close()
+         conn.close()
+
+         return jsonify({
+              "success": False,
+              "error": "Allocations spent."
+         }), 400
+
+            for cand_id in selections:
+                  if cand_id:
+                     cur.execute("""
+                         INSERT INTO votes(candidate_id, context_type)
+                            VALUES(%s,%s)
+                    """, (cand_id, "general"))
+            next_count = current_count + 1
+
+            cur.execute("""
+                  INSERT INTO voter_history(voter_id, count)
+                  VALUES(%s,%s)
+                 ON CONFLICT(voter_id)
+                 DO UPDATE SET count=EXCLUDED.count
+            """, (voter_id, next_count))
+
+            conn.commit()
+
+            cur.close()
+            conn.close()
+
             return jsonify({
-                "success": False,
-                "error": "Allocations spent."
-            }), 400
-
-        for cand_id in selections:
-            if cand_id:
-                cur.execute(
-                    """
-                    INSERT INTO votes(candidate_id, context_type)
-                    VALUES(%s,%s)
-                    """,
-                    (cand_id, "general")
-                )
-
-        next_count = current_count + 1
-
-        cur.execute(
-            """
-            INSERT INTO voter_history(voter_id,count)
-            VALUES(%s,%s)
-            ON CONFLICT(voter_id)
-            DO UPDATE SET count=EXCLUDED.count
-            """,
-            (voter_id, next_count)
-        )
-
-        conn.commit()
-
-        cur.close()
-        conn.close()
-
-        return jsonify({
-            "success": True,
-            "votes_remaining": limit-next_count
-        })
-
+                 "success": True,
+                 "votes_remaining": limit - next_count
+})
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+    import traceback
+    traceback.print_exc()
 
+    return jsonify({
+        "success": False,
+        "error": str(e)
+    }), 500
 @app.route('/api/reset', methods=['POST'])
 def reset_database():
 
