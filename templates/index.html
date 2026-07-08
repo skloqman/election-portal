@@ -559,47 +559,81 @@ if (logoInput) {
     });
 
 });
+const castBtn = document.getElementById("castBallotBtn");
 
-  const castBtn = document.getElementById("castBallotBtn");
-  if(castBtn) castBtn.addEventListener('click', async () => {
-    const voter = state.roster.find(v => v.id === state.selectedVoterId);
-    const activeSelections = Object.values(state.selections);
-    const res = await fetch('/api/cast-vote', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ voterId: voter.id, selections: activeSelections }) });
-    const reply = await res.json();
+if (castBtn) {
+    castBtn.addEventListener("click", async () => {
 
-      if (reply.success) {
+        const voter = state.roster.find(v => v.id === state.selectedVoterId);
 
-        state.lastReceipt = {
-           name: voter.name,
-           rem: reply.votes_remaining === 1
-               ? "You have 1 vote remaining"
-               : `You have ${reply.votes_remaining} votes remaining`
-          };
+        if (!voter) {
+            alert("Please select a voter.");
+            return;
+        }
 
-        state.view = "voted";
-        render();
+        // Required positions
+        let requiredPositions = state.config.positions.filter(position => {
 
-        state.selections = {};
-        state.selectedGrade = "";
-        state.selectedVoterId = "";
+            // Everyone votes for general positions
+            if (position.category === "general") return true;
 
-      initSync();   // don't await this
-      }
-  });
+            // Staff vote for every house
+            if (voter.grade === "Faculty & Staff") return true;
 
-  const loginBtn = document.getElementById("loginBtn");
-  if(loginBtn) loginBtn.addEventListener('click', () => {
-    if(document.getElementById("adminPass").value === state.config.passcode) { state.isAdmin = true; state.view = "admin"; render(); }
-    else { alert("Invalid access credentials."); }
-  });
+            // Students vote only for their own house
+            return position.category === "house" &&
+                   position.house === voter.house;
+        });
 
-  const resetBtn = document.getElementById("resetBtn");
-  if(resetBtn) resetBtn.addEventListener('click', async () => {
-    if(!confirm("Wipe tally transactions?")) return;
-    await fetch('/api/reset', {method:'POST'}); initSync();
-  });
+        // Find missing selections
+        const missing = requiredPositions.filter(position =>
+            !state.selections[position.id]
+        );
+
+        if (missing.length > 0) {
+            alert(
+                "Please vote for all positions before submitting.\n\nMissing:\n" +
+                missing.map(p => p.title + (p.house ? " (" + p.house + ")" : "")).join("\n")
+            );
+            return;
+        }
+
+        const activeSelections = requiredPositions.map(p => state.selections[p.id]);
+
+        const res = await fetch("/api/cast-vote", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                voterId: voter.id,
+                selections: activeSelections
+            })
+        });
+
+        const reply = await res.json();
+
+        if (reply.success) {
+            state.lastReceipt = {
+                name: voter.name,
+                rem: reply.votes_remaining === 1
+                    ? "You have 1 vote remaining"
+                    : `You have ${reply.votes_remaining} votes remaining`
+            };
+
+            state.view = "voted";
+            render();
+
+            state.selections = {};
+            state.selectedGrade = "";
+            state.selectedVoterId = "";
+
+            initSync();
+        } else {
+            alert(reply.error);
+        }
+    });
 }
-
 function esc(s){ return s ? String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : ''; }
 initSync();
 
