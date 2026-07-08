@@ -82,7 +82,7 @@ BASE_ROSTER = [
   {"id":"CH2","name":"Shaik Azaan","house":"Superiors","grade":"4","section":""},
   {"id":"CH3","name":"Syed Azaan Uddin","house":"Challengers","grade":"4","section":""},
   {"id":"C9","name":"SYED FARHAN","house":"Champions","grade":"4","section":""},
-  {"id":"S6","name":"Syed Mohammed Hussain","house":"Worriors","grade":"4","section":""},
+  {"id":"S6","name":"Syed Mohammed Hussain","house":"Warriors","grade":"4","section":""},
   {"id":"C10","name":"Syed Murtaza","house":"Champions","grade":"4","section":""},
   {"id":"S7","name":"Syed Mustafa","house":"Superiors","grade":"4","section":""},
   {"id":"S8","name":"Syeda Hoorain","house":"Superiors","grade":"4","section":""},
@@ -168,7 +168,31 @@ BASE_ROSTER = [
   {"id":"C24","name":"Zunairah Amtul Aleem","house":"Champions","grade":"8","section":""},
 
 ]
+def get_weight_limit(voter_id):
+    profile = next((x for x in BASE_ROSTER if x["id"] == voter_id), None)
 
+    if not profile:
+        return 1
+
+    if profile["grade"] != "Faculty & Staff":
+        return 1
+
+    section = profile.get("section", "").lower()
+    name = profile.get("name", "").lower()
+
+    if (
+        "teacher" in section
+        or "watch" in section
+        or "driver" in section
+        or "supporting" in section
+        or "admin" in section
+        or "floor" in section
+        or "salman" in name
+        or "seema" in name
+    ):
+        return 2
+
+    return 5
 def init_db():
     conn = get_connection()
     cur = conn.cursor()
@@ -223,7 +247,6 @@ def upload_image():
             "error": str(e)
         }), 500
 
-@app.route('/api/get-initial-state')
 @app.route('/api/get-initial-state')
 def get_initial_state():
 
@@ -321,7 +344,6 @@ def save_config():
     })
 
 @app.route('/api/cast-vote', methods=['POST'])
-@app.route('/api/cast-vote', methods=['POST'])
 def cast_vote():
     try:
 
@@ -408,7 +430,6 @@ def reset_database():
         "success": True
     })
 
-@app.route("/api/export/excel")
 @app.route("/api/export/excel")
 def export_excel():
 
