@@ -1,6 +1,8 @@
 import os
 import json
 import sqlite3
+import cloudinary
+import cloudinary.uploader
 
 from flask import Flask, render_template, request, jsonify, send_file
 
@@ -8,6 +10,12 @@ from openpyxl import Workbook
 from reportlab.pdfgen import canvas
 
 app = Flask(__name__, template_folder='templates')
+cloudinary.config(
+    cloud_name="elp5alks",
+    api_key="255227795427121",
+    api_secret="58LQwglKjQ3muJwMUJCPfN5wx7s",
+    secure=True
+)
 DB_FILE = "database.db"
 
 # SEQUENCED CORRECTIONS: Ms. Seema Jabbar is now sorted directly beneath the Floor Incharge position
@@ -173,6 +181,27 @@ def get_weight_limit(voter_id):
 @app.route('/')
 def home():
     return render_template('index.html')
+
+@app.route("/api/upload-image", methods=["POST"])
+def upload_image():
+    try:
+        file = request.files["image"]
+
+        result = cloudinary.uploader.upload(
+            file,
+            folder="vip-election"
+        )
+
+        return jsonify({
+            "success": True,
+            "url": result["secure_url"]
+        })
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
 
 @app.route('/api/get-initial-state')
 def get_initial_state():

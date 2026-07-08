@@ -365,6 +365,7 @@ if(state.adminTab==="campaign"){
         <div style="flex:1;min-width:120px;font-size:13px;font-weight:600;">${esc(c.name)}</div>
         <input type="text" placeholder="Photo URL" value="${esc(c.photo || '')}" data-photo-url-id="${pos.id}|${c.id}" style="width:100px;">
         <input type="text" placeholder="Logo URL" value="${esc(c.logo || '')}" data-logo-url-id="${pos.id}|${c.id}" style="width:100px;">
+        <label class="nav-tab"style="cursor:pointer;padding:6px 12px;background:#CBD5E1;font-size:11px;border-radius:6px;">Logo<input type="file"accept="image/*"data-logo-id="${pos.id}|${c.id}"style="display:none;"></label>
         <label class="nav-tab" style="cursor:pointer;padding:6px 12px;background:#CBD5E1;font-size:11px;border-radius:6px;">Upload <input type="file" accept="image/*" data-photo-id="${pos.id}|${c.id}" style="display:none;"></label>
       </div>`;
     });
@@ -437,32 +438,104 @@ function attachListeners() {
     });
   }
   const logoFileInput = document.getElementById("schoolLogoFileInput");
-  if(logoFileInput) {
-    logoFileInput.addEventListener('change', async (e) => {
-      if(!e.target.files[0]) return;
-      state.config.schoolLogo = await toBase64(e.target.files[0]);
+
+if (logoFileInput) {
+
+    logoFileInput.addEventListener("change", async (e) => {
+
+        if (!e.target.files[0]) return;
+
+        const fd = new FormData();
+        fd.append("image", e.target.files[0]);
+
+        const upload = await fetch("/api/upload-image", {
+            method: "POST",
+            body: fd
+        });
+
+        const result = await upload.json();
+
+        if (!result.success) {
+            alert(result.error);
+            return;
+        }
+
+        state.config.schoolLogo = result.url;
+
+        alert("School logo uploaded successfully.");
+
     });
-  }
+
+}
 
   document.querySelectorAll('[data-photo-id]').forEach(input => {
     input.addEventListener('change', async (e) => {
-      if(!e.target.files[0]) return;
-      const [posId, candId] = input.dataset.photoId.split('|');
-      const pos = state.config.positions.find(p => p.id === posId);
-      const cand = pos.candidates.find(c => c.id === candId);
-      cand.photo = await toBase64(e.target.files[0]);
-    });
-  });
 
-  document.querySelectorAll('[data-logo-id]').forEach(input => {
-    input.addEventListener('change', async (e) => {
-      if(!e.target.files[0]) return;
-      const [posId, candId] = input.dataset.logoId.split('|');
-      const pos = state.config.positions.find(p => p.id === posId);
-      const cand = pos.candidates.find(c => c.id === candId);
-      cand.logo = await toBase64(e.target.files[0]);
+        if (!e.target.files[0]) return;
+
+        const file = e.target.files[0];
+
+        const formData = new FormData();
+        formData.append("image", file);
+
+        const upload = await fetch("/api/upload-image", {
+            method: "POST",
+            body: formData
+        });
+
+        const result = await upload.json();
+
+        if (!result.success) {
+            alert(result.error);
+            return;
+        }
+
+        const [posId, candId] = input.dataset.photoId.split("|");
+
+        const pos = state.config.positions.find(p => p.id === posId);
+        const cand = pos.candidates.find(c => c.id === candId);
+
+        cand.photo = result.url;
+
+        alert("Image uploaded successfully.");
     });
-  });
+});
+
+  document.querySelectorAll("[data-logo-id]").forEach(input => {
+
+    input.addEventListener("change", async (e) => {
+
+        if (!e.target.files[0]) return;
+
+        const fd = new FormData();
+
+        fd.append("image", e.target.files[0]);
+
+        const upload = await fetch("/api/upload-image", {
+            method: "POST",
+            body: fd
+        });
+
+        const result = await upload.json();
+
+        if (!result.success) {
+            alert(result.error);
+            return;
+        }
+
+        const [posId, candId] = input.dataset.logoId.split("|");
+
+        const pos = state.config.positions.find(p => p.id === posId);
+
+        const cand = pos.candidates.find(c => c.id === candId);
+
+        cand.logo = result.url;
+
+        alert("Logo uploaded successfully.");
+
+    });
+
+});
 
   const castBtn = document.getElementById("castBallotBtn");
   if(castBtn) castBtn.addEventListener('click', async () => {
