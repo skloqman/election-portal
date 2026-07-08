@@ -252,6 +252,25 @@ def get_initial_state():
         r[0]: r[1]
         for r in cur.fetchall()
     }
+    vote_percentages = {}
+
+if custom_config:
+    for position in custom_config.get("positions", []):
+
+        total_votes = sum(
+            votes_tally.get(candidate["id"], 0)
+            for candidate in position["candidates"]
+        )
+
+        for candidate in position["candidates"]:
+
+            votes = votes_tally.get(candidate["id"], 0)
+
+            percentage = round(
+                (votes / total_votes) * 100, 2
+            ) if total_votes else 0
+
+            vote_percentages[candidate["id"]] = percentage
 
     cur.execute("""
         SELECT voter_id, count
@@ -267,11 +286,12 @@ def get_initial_state():
     conn.close()
 
     return jsonify({
-        "roster": BASE_ROSTER,
-        "votes": votes_tally,
-        "voters": history,
-        "customConfig": custom_config
-    })
+    "roster": BASE_ROSTER,
+    "votes": votes_tally,
+    "percentages": vote_percentages,
+    "voters": history,
+    "customConfig": custom_config
+})
 
 @app.route('/api/save-config', methods=['POST'])
 @app.route('/api/save-config', methods=['POST'])
