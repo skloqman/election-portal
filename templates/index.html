@@ -566,10 +566,25 @@ if (logoInput) {
     const activeSelections = Object.values(state.selections);
     const res = await fetch('/api/cast-vote', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ voterId: voter.id, selections: activeSelections }) });
     const reply = await res.json();
-    if(reply.success) {
-      state.lastReceipt = { name: voter.name, rem: reply.votes_remaining === 1 ? "You have 1 vote remaining" : "You have " + reply.votes_remaining + " votes remaining" };
-      state.view = "voted"; state.selections = {}; state.selectedGrade = ""; state.selectedVoterId = ""; initSync();
-    } else { alert(reply.error); }
+
+      if (reply.success) {
+
+        state.lastReceipt = {
+           name: voter.name,
+           rem: reply.votes_remaining === 1
+               ? "You have 1 vote remaining"
+               : `You have ${reply.votes_remaining} votes remaining`
+          };
+
+        state.view = "voted";
+        render();
+
+        state.selections = {};
+        state.selectedGrade = "";
+        state.selectedVoterId = "";
+
+      initSync();   // don't await this
+      }
   });
 
   const loginBtn = document.getElementById("loginBtn");
