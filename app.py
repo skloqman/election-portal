@@ -221,18 +221,46 @@ def upload_image():
         }), 500
 
 @app.route('/api/get-initial-state')
+@app.route('/api/get-initial-state')
 def get_initial_state():
-    init_db()
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT vault_val FROM asset_vault WHERE vault_key='custom_config'")
-    row = cursor.fetchone()
-    custom_config = json.loads(row[0]) if row else None
 
-    cursor.execute("SELECT candidate_id, COUNT(*) FROM votes GROUP BY candidate_id")
-    votes_tally = {r[0]: r[1] for r in cursor.fetchall()}
-    cursor.execute("SELECT voter_id, count FROM voter_history")
-    history = {r[0]: r[1] for r in cursor.fetchall()}
+    init_db()
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT vault_val
+        FROM asset_vault
+        WHERE vault_key=%s
+    """, ("custom_config",))
+
+    row = cur.fetchone()
+
+    custom_config = row[0] if row else None
+
+    cur.execute("""
+        SELECT candidate_id, COUNT(*)
+        FROM votes
+        GROUP BY candidate_id
+    """)
+
+    votes_tally = {
+        r[0]: r[1]
+        for r in cur.fetchall()
+    }
+
+    cur.execute("""
+        SELECT voter_id, count
+        FROM voter_history
+    """)
+
+    history = {
+        r[0]: r[1]
+        for r in cur.fetchall()
+    }
+
+    cur.close()
     conn.close()
 
     return jsonify({
@@ -243,69 +271,137 @@ def get_initial_state():
     })
 
 @app.route('/api/save-config', methods=['POST'])
+@app.route('/api/save-config', methods=['POST'])
 def save_config():
+
     data = request.json
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("INSERT OR REPLACE INTO asset_vault (vault_key, vault_val) VALUES ('custom_config', ?)", (json.dumps(data),))
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        INSERT INTO asset_vault (vault_key, vault_val)
+        VALUES (%s, %s)
+        ON CONFLICT (vault_key)
+        DO UPDATE SET vault_val = EXCLUDED.vault_val
+    """, (
+        "custom_config",
+        json.dumps(data)
+    ))
+
     conn.commit()
+
+    cur.close()
     conn.close()
-    return jsonify({"success": True})
+
+    return jsonify({
+        "success": True
+    })
 
 @app.route('/api/cast-vote', methods=['POST'])
+@app.route('/api/cast-vote', methods=['POST'])
 def cast_vote():
+
     data = request.json
-    voter_id = data.get('voterId')
-    selections = data.get('selections')
+
+    voter_id = data.get("voterId")
+    selections = data.get("selections")
 
     limit = get_weight_limit(voter_id)
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT count FROM voter_history WHERE voter_id=?", (voter_id,))
-    row = cursor.fetchone()
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT count FROM voter_history WHERE voter_id=%s",
+        (voter_id,)
+    )
+
+    row = cur.fetchone()
+
     current_count = row[0] if row else 0
 
     if current_count >= limit:
+        cur.close()
         conn.close()
-        return jsonify({"success": False, "error": "Allocations spent."}), 400
+
+        return jsonify({
+            "success": False,
+            "error": "Allocations spent."
+        }), 400
 
     for cand_id in selections:
         if cand_id:
-            cursor.execute("INSERT INTO votes (candidate_id, context_type) VALUES (?, 'general')", (cand_id,))
+            cur.execute(
+                """
+                INSERT INTO votes
+                (candidate_id, context_type)
+                VALUES (%s, %s)
+                """,
+                (cand_id, "general")
+            )
 
     next_count = current_count + 1
-    cursor.execute("INSERT OR REPLACE INTO voter_history (voter_id, count) VALUES (?, ?)", (voter_id, next_count))
+
+    cur.execute("""
+        INSERT INTO voter_history
+        (voter_id, count)
+        VALUES (%s, %s)
+        ON CONFLICT (voter_id)
+        DO UPDATE
+        SET count = EXCLUDED.count
+    """, (
+        voter_id,
+        next_count
+    ))
+
     conn.commit()
+
+    cur.close()
     conn.close()
-    return jsonify({"success": True, "votes_remaining": limit - next_count})
+
+    return jsonify({
+        "success": True,
+        "votes_remaining": limit - next_count
+    })
 
 @app.route('/api/reset', methods=['POST'])
+@app.route('/api/reset', methods=['POST'])
 def reset_database():
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("DROP TABLE IF EXISTS votes")
-    cursor.execute("DROP TABLE IF EXISTS voter_history")
-    conn.commit()
-    conn.close()
-    init_db()
-    return jsonify({"success": True})
 
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("TRUNCATE TABLE votes RESTART IDENTITY;")
+    cur.execute("TRUNCATE TABLE voter_history RESTART IDENTITY;")
+
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "success": True
+    })
+
+@app.route("/api/export/excel")
 @app.route("/api/export/excel")
 def export_excel():
 
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
+    conn = get_connection()
+    cur = conn.cursor()
 
-    cursor.execute("""
+    cur.execute("""
         SELECT candidate_id,
-               COUNT(candidate_id)
+               COUNT(*)
         FROM votes
         GROUP BY candidate_id
-        ORDER BY COUNT(candidate_id) DESC
+        ORDER BY COUNT(*) DESC
     """)
 
-    rows = cursor.fetchall()
+    rows = cur.fetchall()
 
+    cur.close()
     conn.close()
 
     wb = Workbook()
@@ -313,59 +409,71 @@ def export_excel():
     ws = wb.active
     ws.title = "Election Results"
 
-    ws.append(["Candidate ID","Votes"])
+    ws.append(["Candidate ID", "Votes"])
 
     for row in rows:
-        ws.append(row)
+        ws.append(list(row))
 
     filename = "Election_Results.xlsx"
 
     wb.save(filename)
 
-    return send_file(filename,as_attachment=True)
+    return send_file(filename, as_attachment=True)
 
+@app.route("/api/export/pdf")
 @app.route("/api/export/pdf")
 def export_pdf():
 
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
+    conn = get_connection()
+    cur = conn.cursor()
 
-    cursor.execute("SELECT vault_val FROM asset_vault WHERE vault_key='custom_config'")
-    row = cursor.fetchone()
+    cur.execute("""
+        SELECT vault_val
+        FROM asset_vault
+        WHERE vault_key=%s
+    """, ("custom_config",))
 
-    config = json.loads(row[0]) if row else {}
+    row = cur.fetchone()
 
-    # Create candidate lookup
+    config = row[0] if row else {}
+
+    if isinstance(config, str):
+        config = json.loads(config)
+
     candidate_lookup = {}
 
     for position in config.get("positions", []):
+
         for candidate in position["candidates"]:
+
             candidate_lookup[candidate["id"]] = {
                 "name": candidate["name"],
                 "position": position["title"]
             }
 
-    cursor.execute("""
-        SELECT candidate_id, COUNT(*)
+    cur.execute("""
+        SELECT candidate_id,
+               COUNT(*)
         FROM votes
         GROUP BY candidate_id
         ORDER BY COUNT(*) DESC
     """)
 
-    rows = cursor.fetchall()
+    rows = cur.fetchall()
 
+    cur.close()
     conn.close()
 
     filename = "Election_Results.pdf"
 
     pdf = canvas.Canvas(filename)
 
-    pdf.setFont("Helvetica-Bold",18)
-    pdf.drawString(170,800,"Election Results")
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.drawString(170, 800, "Election Results")
 
     y = 760
 
-    pdf.setFont("Helvetica",12)
+    pdf.setFont("Helvetica", 12)
 
     for candidate_id, votes in rows:
 
@@ -376,13 +484,13 @@ def export_pdf():
         else:
             text = f"{candidate_id} : {votes} Votes"
 
-        pdf.drawString(40,y,text)
+        pdf.drawString(40, y, text)
 
         y -= 22
 
         if y < 60:
             pdf.showPage()
-            pdf.setFont("Helvetica",12)
+            pdf.setFont("Helvetica", 12)
             y = 800
 
     pdf.save()
