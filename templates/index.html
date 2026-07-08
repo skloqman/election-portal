@@ -100,73 +100,11 @@ transition:width .8s ease;
 }
  .config-row { display: flex; gap: 16px; margin-bottom: 16px; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; flex-wrap: wrap; }
   footer.foot { text-align: center; margin-top: 40px; font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.03em; }
-#welcomeScreen{
-    position:fixed;
-    inset:0;
-    background:#ffffff;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    z-index:9999;
-    animation:fadeOut 1s ease forwards;
-    animation-delay:3s;
-}
-
-#welcomeScreen img{
-    width:150px;
-    margin-bottom:25px;
-    animation:pop 1s ease;
-}
-
-#welcomeScreen h1{
-    font-size:58px;
-    margin:0;
-    color:#7A0015;
-}
-
-#welcomeScreen p{
-    font-size:20px;
-    font-weight:600;
-    color:#555;
-    margin-top:15px;
-    letter-spacing:2px;
-}
-
-@keyframes pop{
-    from{
-        transform:scale(.6);
-        opacity:0;
-    }
-    to{
-        transform:scale(1);
-        opacity:1;
-    }
-}
-
-@keyframes fadeOut{
-    to{
-        opacity:0;
-        visibility:hidden;
-    }
-}
 </style>
 </head>
 <body>
 
-<div id="welcomeScreen">
-
-    <img src="https://i.imgur.com/G3bY9hP.png">
-
-    <h1>Welcome</h1>
-
-    <p>VIP's INTERNATIONAL SCHOOL</p>
-
-    <p>FLK Branch</p>
-
-    <p>Student Council Elections 2026</p>
-
-</div>
+<div class="container" id="app"></div>
 
 <script>
 let state={view:"vote",adminTab:"dashboard",roster:[],votes:{},voters:{},config:null,selectedGrade:"",selectedVoterId:"",selections:{},isAdmin:false,error:""};
