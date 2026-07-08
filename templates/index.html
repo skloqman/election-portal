@@ -177,7 +177,7 @@ function render() {
   html += `
 <footer class="foot">
     © 2026 VIP's International School <br>
-     Designed & Developed by <strong>Shaukat Khan Loqman</strong>
+     Designed & Developed by <strong>Shaukat Khan Loqman(Computer Faculty, FLK)</strong>
 </footer>`;
   root.innerHTML = html; attachListeners();
 }
@@ -311,7 +311,7 @@ if(state.adminTab==="dashboard"){
 `;
 state.config.positions.forEach(position => {
 
-html += `<div class="position-group-title">${position.title}</div>`;
+html += `<div class="position-group-title"><h2>${currentHouse.name} ${position.title}</h2></div>`;
 
 const counts = {};
 
