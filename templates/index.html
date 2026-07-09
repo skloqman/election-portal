@@ -655,8 +655,14 @@ Export
 <h2 class="house-group-title">📊 Live Metrics Summary</h2>
 `;
       const totalVotes = Object.values(state.votes).reduce((a, b) => a + b, 0);
+
       const totalVoters = state.roster.length;
-      const turnout = totalVoters ? ((totalVotes / totalVoters) * 100).toFixed(1) : 0;
+
+      const votersCast = Object.keys(state.voters).length;
+
+      const turnout = totalVoters
+          ? ((votersCast / totalVoters) * 100).toFixed(1)
+          : 0;
       if (state.adminTab === "dashboard") {
         html += `
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px;margin:25px 0;">
