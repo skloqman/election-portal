@@ -522,11 +522,11 @@
 
     function getStaffOrderScore(section) {
       const s = (section || "").toLowerCase();
-      if (s.includes("managing director")) return 1; if (s.includes("academic director")) return 2;
-      if (s.includes("academic coordinator")) return 3; if (s.includes("academic incharge")) return 4;
-      if (s.includes("hod")) return 5; if (s.includes("admin incharge")) return 6;
-      if (s.includes("floor")) return 7; if (s.includes("in charge") || s.includes("seema")) return 8; if (s.includes("admin")) return 9;
-      if (s.includes("teacher")) return 10; if (s.includes("driver")) return 11; if (s.includes("watch man")) return 12;
+      if (s.includes("managing director")) return 1;if (s.includes("head mistress")) return 2;
+       if (s.includes("academic director")) return 3;if (s.includes("academic coordinator")) return 4; if (s.includes("academic incharge")) return 5;
+      if (s.includes("hod")) return 6; if (s.includes("admin incharge")) return 7;
+      if (s.includes("floor")) return 8; if (s.includes("in charge") || s.includes("seema")) return 9; if (s.includes("admin")) return 10;if (s.includes("supporting coordinator")) return 11;
+      if (s.includes("teacher")) return 12; if (s.includes("driver")) return 13; if (s.includes("watch man")) return 14;
       return 13;
     }
 
